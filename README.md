@@ -59,6 +59,16 @@ const sub = subscribe(ReadableStream, '{ lat, lon, speed }', {
 
 ---
 
+## Test Data
+
+1M Row Flight Data
+
+```bash
+curl -C - -L -o data.json "https://agents-for-data-prod-tmp.8e464e4039ccd5897a90175399bb04a7.r2.cloudflarestorage.com/2026-01-05/7ab6aa37-50c2-4b12-93ce-cc5769bc56f4/flights-1m.json?X-Amz-Expires=3600&X-Amz-Date=20260105T101819Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7283c8cfa964ae1d21c994a61ac3c987%2F20260105%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=6cc8988f2d75adcfb932b9fb333dc7bacfd349656f6547452e0b69dac465ebf3"
+```
+
+---
+
 ## 💻 CLI Usage
 
 JQL comes with a high-performance CLI for terminal-based projection.
