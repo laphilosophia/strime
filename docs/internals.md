@@ -40,6 +40,12 @@ JSON logs repeat keys like `"id"`, `"timestamp"`, and `"level"` millions of time
 - JQL maintains a small, fixed-size cache of recently decoded strings (under 32 bytes).
 - If a byte sequence matches a cached key, we return the cached string reference instead of calling `TextDecoder.decode()`.
 
-## 5. Forward-Only FSM 📡
+## 5. Why not Uint32/SWAR? 🧪
+
+We experimented with wide-reads (Uint32/SWAR) to leapfrog 4 bytes at a time. While micro-benchmarks showed a 50%+ gain, real-world JSON is so dense with structural characters that the overhead of alignment checks and bitmasking was a net negative.
+
+**V8's native `Uint8Array` loop vectorization is a beast**, and JQL is designed to play to its strengths.
+
+## 6. Forward-Only FSM 📡
 
 JQL never backtracks. It maintains a stack-based State Machine that processes data in a single pass. This ensures $O(N)$ time complexity and $O(D)$ memory complexity, where $D$ is the nesting depth.
