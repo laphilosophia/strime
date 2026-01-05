@@ -61,6 +61,8 @@ const sub = subscribe(ReadableStream, '{ lat, lon, speed }', {
 
 ## Test Data
 
+> [MS Edge JSON Dummy Data Set](https://microsoftedge.github.io/Demos/json-dummy-data/)
+
 1M Row Flight Data
 
 ```bash

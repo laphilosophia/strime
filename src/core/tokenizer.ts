@@ -100,10 +100,13 @@ export class Tokenizer {
       } else if (this.state === 'LITERAL') {
         this.buffer.push(byte);
         if (this.buffer.length === this.literalTarget.length) {
-          if (this.decodeBuffer() === this.literalTarget) {
+          const actual = this.decodeBuffer();
+          if (actual === this.literalTarget) {
             yield { type: this.literalType, start: this.startPos, end: this.pos };
+            this.state = 'IDLE';
+          } else {
+            throw new Error(`Invalid literal: expected ${this.literalTarget}, got ${actual} at position ${this.startPos}`);
           }
-          this.state = 'IDLE';
         }
       }
     }

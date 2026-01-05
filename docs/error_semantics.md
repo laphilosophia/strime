@@ -7,7 +7,8 @@ This document defines how JQL handles malformed data, schema mismatches, and exe
 | Category | Behavior | Result |
 | :--- | :--- | :--- |
 | **Syntax Error (JQL)** | **Hard Abort** | Throws `Error` during `parse()`. |
-| **Malformed JSON** | **Hard Abort** | FSM enters invalid state; throws `Error`. |
+| **Malformed JSON (Structural)** | **Resilient Skip** | Skips invalid tokens and attempts to sync on next `{`, `}`, `[`, `]`. |
+| **Corrupted Token (Literal)** | **Hard Abort** | Throws `Error` (e.g., `truX` instead of `true`). Prevents state sync loss. |
 | **Schema Mismatch** | **Silent Drop** | Requested key not found in JSON → key omitted or `@default`. |
 | **Directive Error** | **Safe Fallback** | `null` or un-transformed value (see below). |
 

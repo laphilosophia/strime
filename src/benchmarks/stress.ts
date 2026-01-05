@@ -6,6 +6,10 @@ async function runStressTest() {
   const filePath = join(process.cwd(), 'data', 'large-file.json');
   const buffer = readFileSync(filePath);
 
+  if (!buffer) {
+    throw new Error(`File not found: ${filePath}`);
+  }
+
   console.log('--- JQL Large File Stress Test ---');
   console.log(`File Size: ${(buffer.length / (1024 * 1024)).toFixed(2)} MB`);
 
