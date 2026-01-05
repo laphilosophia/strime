@@ -18,6 +18,7 @@ Understand why JQL is the fastest JSON engine for the edge:
 
 - [**Internals Deep-Dive**](internals.md) - Learn about GC-Free tokenization, binary line splitting, and object recycling.
 - [**Performance Contract**](performance.md) - Our ironclad guarantees for time and memory complexity.
+- [**Capabilities**](capabilities.md) - JQL's capabilities and limitations.
 
 ## 🛡️ Reliability
 
