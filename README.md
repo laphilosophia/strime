@@ -1,4 +1,4 @@
-# JQL (JSON Query Language) 🚀
+# JQL (JSON Query Language)
 
 **JQL is one of the fastest streaming JSON projection engines in pure JavaScript — and the only one designed to run safely at the edge**
 
@@ -58,6 +58,69 @@ subscribe(telemetryStream, '{ lat, lon }', {
   onMatch: (data) => console.log('Match!', data),
   onComplete: () => console.log('Done.')
 });
+```
+
+### Fault-Tolerant NDJSON (New in v2.2.1)
+
+```typescript
+import { ndjsonStream } from 'jql';
+
+for await (const result of ndjsonStream(stream, '{ id, name }', {
+  skipErrors: true,  // Continue processing on errors
+  onError: (info) => {
+    console.error(`Line ${info.lineNumber}: ${info.error.message}`);
+  },
+  maxLineLength: 10 * 1024 * 1024  // 10MB DoS protection
+})) {
+  console.log(result);
+}
+```
+
+---
+
+## ✨ What's New in v2.2.1
+
+### 🔄 Dual Tokenizer API
+
+Choose between callback (zero-allocation) or iterator (convenience):
+
+```typescript
+import { Tokenizer } from 'jql';
+
+const tokenizer = new Tokenizer();
+const buffer = new TextEncoder().encode('{"key": "value"}');
+
+// Iterator API - convenient, each token is a new object
+for (const token of tokenizer.tokenize(buffer)) {
+  console.log(token.type, token.value);
+}
+
+// Callback API - zero-allocation, token is reused
+tokenizer.processChunk(buffer, (token) => {
+  console.log(token.type, token.value);
+  // Clone if you need to store: { ...token }
+});
+```
+
+### 🛡️ Production-Grade Error Handling
+
+- **Proper Error Types**: `JQLError`, `TokenizationError`, `ParseError`, `StructuralMismatchError`
+- **Position Tracking**: Know exactly where errors occurred
+- **Fault Tolerance**: Skip corrupt lines in NDJSON streams
+- **DoS Protection**: `maxLineLength` prevents memory exhaustion
+
+```typescript
+import { JQLError, TokenizationError } from 'jql';
+
+try {
+  const result = await query(data, '{ id, name }');
+} catch (error) {
+  if (error instanceof TokenizationError) {
+    console.error(`Invalid JSON at position ${error.position}`);
+  } else if (error instanceof JQLError) {
+    console.error(`JQL Error [${error.code}]: ${error.message}`);
+  }
+}
 ```
 
 ---

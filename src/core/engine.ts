@@ -1,4 +1,5 @@
 import { DirectiveRegistry } from './directives';
+import { StructuralMismatchError } from './errors';
 import { SelectionMap } from './parser';
 import { Token, Tokenizer, TokenType } from './tokenizer';
 
@@ -71,7 +72,7 @@ export class Engine {
       case TokenType.RIGHT_BRACKET: this.onStructureEnd(); break;
       case TokenType.STRING:
         if (this.expectingKey()) {
-          this.currentKey = token.value;
+          this.currentKey = token.value as string;
         } else {
           this.onValue(token.value);
         }
@@ -104,7 +105,7 @@ export class Engine {
     } else if (this.isArray()) {
       const parentResult = this.resultStack[this.resultStack.length - 1];
       if (!Array.isArray(parentResult)) {
-        throw new Error(`Structural mismatch: expected array at depth ${this.resultStack.length}`);
+        throw new StructuralMismatchError(`Expected array at depth ${this.resultStack.length}`);
       }
       currentSelection = parent;
       const newObj = isArray ? [] : {};
@@ -118,7 +119,7 @@ export class Engine {
       if (currentSelection) {
         const parentResult = this.resultStack[this.resultStack.length - 1];
         if (typeof parentResult !== 'object' || parentResult === null || Array.isArray(parentResult)) {
-          throw new Error(`Structural mismatch: expected object at depth ${this.resultStack.length} for key ${targetKey}`);
+          throw new StructuralMismatchError(`Expected object at depth ${this.resultStack.length} for key '${targetKey}'`);
         }
         const newObj = isArray ? [] : {};
         parentResult[targetKey!] = newObj;
@@ -176,7 +177,7 @@ export class Engine {
     if (this.isArray()) {
       const parentResult = this.resultStack[this.resultStack.length - 1];
       if (!Array.isArray(parentResult)) {
-        throw new Error(`Structural mismatch: expected array at depth ${this.resultStack.length} for value`);
+        throw new StructuralMismatchError(`Expected array at depth ${this.resultStack.length} for value`);
       }
       // For arrays, if selection is boolean true or an object with no explicit fields but maybe directives
       if (parent.selection || parent === true || parent.directives) {
@@ -185,7 +186,7 @@ export class Engine {
     } else if (this.currentKey && parent.selection && parent.selection[this.currentKey]) {
       const parentResult = this.resultStack[this.resultStack.length - 1];
       if (typeof parentResult !== 'object' || parentResult === null || Array.isArray(parentResult)) {
-        throw new Error(`Structural mismatch: expected object at depth ${this.resultStack.length} for key ${this.currentKey}`);
+        throw new StructuralMismatchError(`Expected object at depth ${this.resultStack.length} for key '${this.currentKey}'`);
       }
       const config = parent.selection[this.currentKey];
       const targetKey = config.alias || this.currentKey;

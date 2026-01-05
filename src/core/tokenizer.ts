@@ -1,3 +1,5 @@
+import { TokenizationError } from './errors';
+
 export enum TokenType {
   LEFT_BRACE,
   RIGHT_BRACE,
@@ -15,7 +17,7 @@ export enum TokenType {
 
 export interface Token {
   type: TokenType;
-  value?: any;
+  value?: unknown;
   start: number;
   end: number;
 }
@@ -45,7 +47,34 @@ export class Tokenizer {
     this.startPos = 0;
   }
 
-  public processChunk(chunk: Uint8Array, onToken: (token: Token) => void) {
+  /**
+   * Process a chunk of JSON data using callback pattern.
+   *
+   * This is the high-performance API optimized for streaming with zero allocation.
+   * The token object passed to the callback is reused for performance - if you need
+   * to store tokens, you must clone them.
+   *
+   * @param chunk - Uint8Array containing JSON data to process
+   * @param onToken - Callback invoked for each token
+   *
+   * @warning The token object is reused for performance. Clone it if you need to store it:
+   * ```typescript
+   * tokenizer.processChunk(buffer, (token) => {
+   *   tokens.push({ ...token }); // Clone the token
+   * });
+   * ```
+   *
+   * @example
+   * ```typescript
+   * const tokenizer = new Tokenizer();
+   * const buffer = new TextEncoder().encode('{"key": "value"}');
+   *
+   * tokenizer.processChunk(buffer, (token) => {
+   *   console.log(token.type, token.value);
+   * });
+   * ```
+   */
+  public processChunk(chunk: Uint8Array, onToken: (token: Token) => void): void {
     const len = chunk.length;
     for (let i = 0; i < len; i++) {
       const byte = chunk[i];
@@ -108,14 +137,17 @@ export class Tokenizer {
             this.emit(this.literalType, this.startPos, this.pos, onToken);
             this.state = 'IDLE';
           } else {
-            throw new Error(`Invalid literal: expected ${this.literalTarget}, got ${actual} at position ${this.startPos}`);
+            throw new TokenizationError(
+              `Invalid literal: expected '${this.literalTarget}', got '${actual}'`,
+              this.startPos
+            );
           }
         }
       }
     }
   }
 
-  private emit(type: TokenType, start: number, end: number, onToken: (t: Token) => void, value?: any) {
+  private emit(type: TokenType, start: number, end: number, onToken: (t: Token) => void, value?: unknown): void {
     this.reusableToken.type = type;
     this.reusableToken.start = start;
     this.reusableToken.end = end;
@@ -141,9 +173,136 @@ export class Tokenizer {
     return parseFloat(this.decoder.decode(this.buffer.subarray(0, len)));
   }
 
-  // Compat
+  /**
+   * Process chunk and yield tokens as an iterator.
+   *
+   * This method provides a proper generator-based API for tokenization.
+   * Each token is a new object, safe to store and use after the generator completes.
+   *
+   * @param chunk - Uint8Array containing JSON data to tokenize
+   * @yields Token objects (each is an independent object)
+   *
+   * @example
+   * ```typescript
+   * const tokenizer = new Tokenizer();
+   * const buffer = new TextEncoder().encode('{"key": "value"}');
+   *
+   * for (const token of tokenizer.tokenize(buffer)) {
+   *   console.log(token.type, token.value);
+   * }
+   * ```
+   */
+  public *tokenize(chunk: Uint8Array): Generator<Token, void, undefined> {
+    const len = chunk.length;
+
+    for (let i = 0; i < len; i++) {
+      const byte = chunk[i];
+      const currentPos = this.pos;
+      this.pos++;
+
+      if (this.state === 'IDLE') {
+        switch (byte) {
+          case 123: // {
+            yield this.createToken(TokenType.LEFT_BRACE, currentPos, this.pos);
+            break;
+          case 125: // }
+            yield this.createToken(TokenType.RIGHT_BRACE, currentPos, this.pos);
+            break;
+          case 91: // [
+            yield this.createToken(TokenType.LEFT_BRACKET, currentPos, this.pos);
+            break;
+          case 93: // ]
+            yield this.createToken(TokenType.RIGHT_BRACKET, currentPos, this.pos);
+            break;
+          case 58: // :
+            yield this.createToken(TokenType.COLON, currentPos, this.pos);
+            break;
+          case 44: // ,
+            yield this.createToken(TokenType.COMMA, currentPos, this.pos);
+            break;
+          case 34: // "
+            this.state = 'STRING';
+            this.bufferOffset = 0;
+            this.startPos = currentPos;
+            break;
+          case 116: // t
+            this.startLiteral('true', TokenType.TRUE, byte, currentPos);
+            break;
+          case 102: // f
+            this.startLiteral('false', TokenType.FALSE, byte, currentPos);
+            break;
+          case 110: // n
+            this.startLiteral('null', TokenType.NULL, byte, currentPos);
+            break;
+          case 32: case 9: case 10: case 13: // Whitespace
+            break;
+          default:
+            if ((byte >= 48 && byte <= 57) || byte === 45) { // 0-9 or -
+              this.state = 'NUMBER';
+              this.buffer[0] = byte;
+              this.bufferOffset = 1;
+              this.startPos = currentPos;
+            }
+            break;
+        }
+      } else if (this.state === 'STRING') {
+        if (byte === 34) { // "
+          yield this.createToken(TokenType.STRING, this.startPos, this.pos, this.decodeBuffer());
+          this.state = 'IDLE';
+        } else if (byte === 92) { // \
+          this.state = 'STRING_ESCAPE';
+        } else {
+          this.buffer[this.bufferOffset++] = byte;
+        }
+      } else if (this.state === 'STRING_ESCAPE') {
+        this.buffer[this.bufferOffset++] = byte;
+        this.state = 'STRING';
+      } else if (this.state === 'NUMBER') {
+        if ((byte >= 48 && byte <= 57) || byte === 46 || byte === 101 || byte === 69 || byte === 45 || byte === 43) {
+          this.buffer[this.bufferOffset++] = byte;
+        } else {
+          const val = this.parseNumber();
+          yield this.createToken(TokenType.NUMBER, this.startPos, currentPos, val);
+          this.state = 'IDLE';
+          i--;
+          this.pos--;
+        }
+      } else if (this.state === 'LITERAL') {
+        this.buffer[this.bufferOffset++] = byte;
+        if (this.bufferOffset === this.literalTarget.length) {
+          const actual = this.decodeBuffer();
+          if (actual === this.literalTarget) {
+            yield this.createToken(this.literalType, this.startPos, this.pos);
+            this.state = 'IDLE';
+          } else {
+            throw new TokenizationError(
+              `Invalid literal: expected '${this.literalTarget}', got '${actual}'`,
+              this.startPos
+            );
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * @deprecated Use tokenize() instead. This method is kept for backward compatibility.
+   */
   public nextToken(): Token {
     return { type: TokenType.EOF, start: this.pos, end: this.pos };
+  }
+
+  /**
+   * Create a new token object.
+   * Used by the iterator API to create independent token objects.
+   */
+  private createToken(type: TokenType, start: number, end: number, value?: unknown): Token {
+    return {
+      type,
+      start,
+      end,
+      value
+    };
   }
 
   private startLiteral(target: string, type: TokenType, firstByte: number, startPos: number) {

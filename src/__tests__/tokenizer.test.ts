@@ -7,7 +7,14 @@ describe('Tokenizer', () => {
     const buffer = new TextEncoder().encode(json);
     const tokenizer = new Tokenizer();
 
-    const tokens = Array.from(tokenizer.processChunk(buffer));
+    const tokens: Array<{ type: TokenType; value?: unknown }> = [];
+    tokenizer.processChunk(buffer, (token) => {
+      // Clone token because it's reused
+      tokens.push({
+        type: token.type,
+        value: token.value
+      });
+    });
 
     expect(tokens[0].type).toBe(TokenType.LEFT_BRACE);
     expect(tokens[1].type).toBe(TokenType.STRING); // "a"
@@ -27,10 +34,16 @@ describe('Tokenizer', () => {
     const chunk1 = new TextEncoder().encode('{"name": "Leanne');
     const chunk2 = new TextEncoder().encode(' Graham"}');
 
-    const tokens1 = Array.from(tokenizer.processChunk(chunk1));
+    const tokens1: Array<{ type: TokenType }> = [];
+    tokenizer.processChunk(chunk1, (token) => {
+      tokens1.push({ type: token.type });
+    });
     expect(tokens1).toHaveLength(3); // {, "name", :
 
-    const tokens2 = Array.from(tokenizer.processChunk(chunk2));
+    const tokens2: Array<{ type: TokenType; value?: unknown }> = [];
+    tokenizer.processChunk(chunk2, (token) => {
+      tokens2.push({ type: token.type, value: token.value });
+    });
     expect(tokens2).toHaveLength(2); // "Leanne Graham", }
     expect(tokens2[0].value).toBe("Leanne Graham");
   });

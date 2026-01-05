@@ -82,26 +82,38 @@ export function build(source: JQLSource, options: JQLOptions = {}): JQLInstance 
   return instance;
 }
 
+/**
+ * Build an index of root-level keys and their byte positions.
+ * This enables the indexed mode to skip directly to requested keys.
+ *
+ * @param buffer - JSON buffer to index
+ * @returns Map of key names to their byte positions
+ */
 function buildRootIndex(buffer: Uint8Array): Map<string, number> {
   const index = new Map<string, number>();
   const tokenizer = new Tokenizer();
   let depth = 0;
   let currentKey: string | null = null;
 
-  for (const token of tokenizer.processChunk(buffer)) {
+  for (const token of tokenizer.tokenize(buffer)) {
     if (token.type === TokenType.LEFT_BRACE || token.type === TokenType.LEFT_BRACKET) {
       depth++;
     } else if (token.type === TokenType.RIGHT_BRACE || token.type === TokenType.RIGHT_BRACKET) {
       depth--;
-    } else if (depth === 1 && token.type === TokenType.STRING) {
-      currentKey = token.value;
-    } else if (currentKey && depth === 1 && token.type === TokenType.COLON) {
+      // Early exit: if we've exited the root object and have keys, we're done
+      if (depth === 0 && index.size > 0) {
+        break;
+      }
+    } else if (depth === 1 && token.type === TokenType.STRING && currentKey === null) {
+      // At root level, found a potential key
+      currentKey = token.value as string;
+    } else if (depth === 1 && token.type === TokenType.COLON && currentKey !== null) {
+      // Found the colon after a key, record the position
       index.set(currentKey, token.start);
       currentKey = null;
     }
-
-    if (depth === 0 && index.size > 0) break;
   }
+
   return index;
 }
 
