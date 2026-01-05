@@ -1,6 +1,9 @@
 /**
  * Worker Pool - Manages bounded worker threads
+ * Uses Node.js worker_threads for Node.js environments
  */
+
+import { Worker } from 'node:worker_threads'
 
 export interface WorkerPoolOptions {
   size: number
@@ -17,10 +20,11 @@ export class WorkerPool {
   }> = []
 
   constructor(private options: WorkerPoolOptions) {
-    // Create workers
+    // Create workers using URL resolution
     for (let i = 0; i < options.size; i++) {
       const worker = new Worker(new URL(options.scriptPath, import.meta.url), {
-        type: 'module',
+        // Enable TypeScript execution in development/test environments
+        execArgv: ['--import', 'tsx'],
       })
       this.workers.push(worker)
       this.availableWorkers.push(worker)
@@ -47,33 +51,33 @@ export class WorkerPool {
     resolve: (value: any) => void,
     reject: (error: Error) => void
   ) {
-    const onMessage = (e: MessageEvent) => {
-      worker.removeEventListener('message', onMessage)
-      worker.removeEventListener('error', onError)
+    const onMessage = (result: any) => {
+      worker.off('message', onMessage)
+      worker.off('error', onError)
 
       // Return worker to pool
       this.returnWorker(worker)
 
       // Resolve with result
-      if (e.data.error) {
-        reject(new Error(e.data.error))
+      if (result.error) {
+        reject(new Error(result.error))
       } else {
-        resolve(e.data)
+        resolve(result)
       }
     }
 
-    const onError = (error: ErrorEvent) => {
-      worker.removeEventListener('message', onMessage)
-      worker.removeEventListener('error', onError)
+    const onError = (error: Error) => {
+      worker.off('message', onMessage)
+      worker.off('error', onError)
 
       // Return worker to pool
       this.returnWorker(worker)
 
-      reject(new Error(error.message))
+      reject(error)
     }
 
-    worker.addEventListener('message', onMessage)
-    worker.addEventListener('error', onError)
+    worker.on('message', onMessage)
+    worker.on('error', onError)
     worker.postMessage(data)
   }
 
@@ -104,7 +108,7 @@ export class WorkerPool {
 
     // Terminate all workers
     for (const worker of this.workers) {
-      worker.terminate()
+      await worker.terminate()
     }
 
     this.workers = []

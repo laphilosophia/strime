@@ -310,7 +310,9 @@ export class Engine {
           this.isCapturing = false
         }
         this.finalResult = finishedItem
-        this.sink?.onMatch?.(finishedItem)
+        if (this.emitMode === 'object') {
+          this.sink?.onMatch?.(finishedItem)
+        }
       } else if (this.resultStack.length === 1 && this.isArrayStack.length === 0 && wasArray) {
         // Root array ended - only store final result, don't emit as match
         // to avoid double emission (individual items were already emitted)
@@ -326,7 +328,9 @@ export class Engine {
             this.sink?.onRawMatch?.(raw)
             this.isCapturing = false
           }
-          this.sink?.onMatch?.(finishedItem)
+          if (this.emitMode === 'object') {
+            this.sink?.onMatch?.(finishedItem)
+          }
         }
       }
     }

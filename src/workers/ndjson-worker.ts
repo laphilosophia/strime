@@ -11,8 +11,7 @@
  * - Handle ordering
  */
 
-import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { parentPort } from 'node:worker_threads'
 
 interface WorkerMessage {
   id: number
@@ -28,54 +27,60 @@ interface WorkerResponse {
   error?: string
 }
 
-self.onmessage = (e: MessageEvent<WorkerMessage>) => {
-  const { id, line, query, emitMode = 'object' } = e.data
+// Worker message handler
+if (parentPort) {
+  parentPort.on('message', async (message: any) => {
+    try {
+      const { id, line, query, emitMode } = message
 
-  try {
-    // Parse query
-    const parser = new JQLParser(query)
-    const map = parser.parse()
+      // Dynamically import to avoid bundling issues
+      const { JQLParser } = await import('../core/parser.js')
+      const { Engine } = await import('../core/engine.js')
 
-    // Create engine
-    let result: any
-    let raw: Uint8Array | undefined
+      // Parse query
+      const parser = new JQLParser(query)
+      const map = parser.parse()
 
-    const engine = new Engine(map, {
-      emitMode,
-      sink:
-        emitMode === 'raw'
-          ? {
-              onRawMatch: (chunk) => {
-                raw = chunk
+      // Process line
+      let result: any
+      let raw: Uint8Array | undefined
+
+      const engine = new Engine(map, {
+        emitMode,
+        sink:
+          emitMode === 'raw'
+            ? {
+                onRawMatch: (chunk) => {
+                  raw = chunk
+                },
+              }
+            : {
+                onMatch: (data) => {
+                  result = data
+                },
               },
-            }
-          : {
-              onMatch: (data) => {
-                result = data
-              },
-            },
-    })
+      })
 
-    // Execute
-    engine.execute(line)
+      engine.execute(line)
 
-    // Send result
-    const response: WorkerResponse = {
-      id,
-      result: emitMode === 'object' ? result : undefined,
-      raw: emitMode === 'raw' ? raw : undefined,
+      // Send result back
+      const response = {
+        id,
+        result: emitMode === 'object' ? result : undefined,
+        raw: emitMode === 'raw' ? raw : undefined,
+      }
+
+      // For raw mode, transfer buffer ownership
+      if (raw && raw.buffer instanceof ArrayBuffer) {
+        parentPort!.postMessage(response, { transfer: [raw.buffer] })
+      } else {
+        parentPort!.postMessage(response)
+      }
+    } catch (error) {
+      parentPort!.postMessage({
+        id: (message as any).id,
+        error: error instanceof Error ? error.message : String(error),
+      })
     }
-
-    // Transfer raw buffer if present
-    if (raw && raw.buffer) {
-      self.postMessage(response, { transfer: [raw.buffer] })
-    } else {
-      self.postMessage(response)
-    }
-  } catch (error) {
-    self.postMessage({
-      id,
-      error: error instanceof Error ? error.message : String(error),
-    })
-  }
+  })
 }

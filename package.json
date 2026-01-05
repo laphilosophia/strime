@@ -13,6 +13,7 @@
     "build": "tsup src/index.ts src/cli/index.ts --format esm --dts --clean --splitting --out-dir dist",
     "dev": "vitest",
     "bench": "tsx src/benchmarks/benchmark.ts",
+    "bench:parallel": "tsx src/benchmarks/ndjson-parallel-benchmark.ts",
     "stress": "tsx src/benchmarks/stress.ts"
   },
   "keywords": [
