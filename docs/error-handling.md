@@ -98,7 +98,7 @@ With `skipErrors: true`, malformed lines are reported via `onError` and skipped.
 ### Catching Specific Errors
 
 ```ts
-import { query, TokenizationError, StructuralMismatchError } from 'strime'
+import { query, TokenizationError, StructuralMismatchError } from '@laphilosophia/strime'
 
 try {
   const result = await query(data, schema)
@@ -114,7 +114,7 @@ try {
 ### Budget-Limited Execution
 
 ```ts
-import { query, BudgetExhaustedError } from 'strime'
+import { query, BudgetExhaustedError } from '@laphilosophia/strime'
 
 try {
   const result = await query(stream, '{ id }', {

@@ -33,7 +33,7 @@ _Validated on 1GB+ files. See [Performance Contract](docs/performance.md) for me
 ## Install
 
 ```bash
-npm install strime
+npm install @laphilosophia/strime
 ```
 
 ---
@@ -43,7 +43,7 @@ npm install strime
 ### Query
 
 ```typescript
-import { query } from 'strime'
+import { query } from '@laphilosophia/strime'
 
 const result = await query(data, '{ id, user { name, email } }')
 ```
@@ -51,7 +51,7 @@ const result = await query(data, '{ id, user { name, email } }')
 ### Stream NDJSON
 
 ```typescript
-import { ndjsonStream } from 'strime'
+import { ndjsonStream } from '@laphilosophia/strime'
 
 for await (const row of ndjsonStream(stream, '{ id, name }')) {
   console.log(row)
@@ -72,7 +72,7 @@ for await (const row of ndjsonStream(stream, '{ id, name }', {
 ### Real-Time Subscribe
 
 ```typescript
-import { subscribe } from 'strime'
+import { subscribe } from '@laphilosophia/strime'
 
 subscribe(telemetryStream, '{ lat, lon }', {
   onMatch: (data) => console.log(data),
@@ -122,8 +122,8 @@ tail -f telemetry.log | strime --ndjson "{ lat, lon }"
 For maximum throughput on large single-buffer inputs:
 
 ```typescript
-import { Engine } from 'strime'
-import { StrimeParser } from 'strime'
+import { Engine } from '@laphilosophia/strime'
+import { StrimeParser } from '@laphilosophia/strime'
 import { readFileSync } from 'fs'
 
 const buffer = readFileSync('large-file.json')
@@ -138,7 +138,7 @@ const result = engine.executeChunked(buffer, 32768) // Custom 32KB chunks
 ### Low-Level Tokenizer
 
 ```typescript
-import { Tokenizer } from 'strime'
+import { Tokenizer } from '@laphilosophia/strime'
 
 const tokenizer = new Tokenizer()
 const buffer = new TextEncoder().encode('{"key": "value"}')

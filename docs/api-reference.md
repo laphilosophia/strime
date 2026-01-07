@@ -9,7 +9,7 @@ This document provides the complete public API surface of Strime. All signatures
 One-shot query execution. Parses the schema, processes the source, and returns the projected result.
 
 ```ts
-import { query } from 'strime'
+import { query } from '@laphilosophia/strime'
 
 const result = await query(data, '{ id, name }')
 ```
@@ -25,7 +25,7 @@ const result = await query(data, '{ id, name }')
 Creates a reusable instance for multiple queries against the same source.
 
 ```ts
-import { build } from 'strime'
+import { build } from '@laphilosophia/strime'
 
 const instance = build(buffer, { mode: 'indexed' })
 const result = await instance.read('{ id }')
@@ -43,7 +43,7 @@ const result = await instance.read('{ id }')
 Push-mode subscription for real-time processing.
 
 ```ts
-import { subscribe } from 'strime'
+import { subscribe } from '@laphilosophia/strime'
 
 const sub = subscribe(stream, '{ id }', {
   onMatch: (data) => console.log(data),
@@ -100,7 +100,7 @@ interface SubscriptionOptions {
 NDJSON adapter with fault tolerance.
 
 ```ts
-import { ndjsonStream } from 'strime'
+import { ndjsonStream } from '@laphilosophia/strime'
 
 for await (const row of ndjsonStream(stream, '{ id }', { skipErrors: true })) {
   // Process row
@@ -131,7 +131,7 @@ interface NDJSONErrorInfo {
 Parallel NDJSON processing using worker threads.
 
 ```ts
-import { ndjsonParallel } from 'strime'
+import { ndjsonParallel } from '@laphilosophia/strime'
 
 for await (const row of ndjsonParallel(stream, '{ id }', { workers: 4 })) {
   // Process row
@@ -145,8 +145,8 @@ Low-level APIs for custom adapters.
 ### `Engine`
 
 ```ts
-import { Engine } from 'strime'
-import { StrimeParser } from 'strime'
+import { Engine } from '@laphilosophia/strime'
+import { StrimeParser } from '@laphilosophia/strime'
 
 const schema = new StrimeParser('{ id, name }').parse()
 const engine = new Engine(schema, options)
@@ -179,7 +179,7 @@ engine.reset()
 ### `Tokenizer`
 
 ```ts
-import { Tokenizer } from 'strime'
+import { Tokenizer } from '@laphilosophia/strime'
 
 const tokenizer = new Tokenizer()
 
@@ -197,7 +197,7 @@ for (const token of tokenizer.tokenize(chunk)) {
 ### `StrimeParser`
 
 ```ts
-import { StrimeParser } from 'strime'
+import { StrimeParser } from '@laphilosophia/strime'
 
 const parser = new StrimeParser('{ id, name }')
 const selectionMap = parser.parse()
@@ -210,7 +210,7 @@ const selectionMap = parser.parse()
 Output sink with optional compression.
 
 ```ts
-import { createCompressionSink } from 'strime'
+import { createCompressionSink } from '@laphilosophia/strime'
 
 const sink = createCompressionSink({
   onChunk: (chunk) => stream.write(chunk),
@@ -230,7 +230,7 @@ import {
   StructuralMismatchError,
   AbortError,
   BudgetExhaustedError,
-} from 'strime'
+} from '@laphilosophia/strime'
 ```
 
 See [Error Handling](error-handling.md) for details.

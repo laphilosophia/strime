@@ -5,7 +5,7 @@ This guide covers installation and core usage patterns. For detailed reference, 
 ## Installation
 
 ```bash
-npm install strime
+npm install @laphilosophia/strime
 ```
 
 ## Basic Usage
@@ -13,7 +13,7 @@ npm install strime
 ### Object Projection
 
 ```ts
-import { query } from 'strime'
+import { query } from '@laphilosophia/strime'
 
 const user = {
   id: 1,
@@ -44,7 +44,7 @@ const result = await query(users, '{ name, email }')
 Process large files without loading into memory:
 
 ```ts
-import { ndjsonStream } from 'strime'
+import { ndjsonStream } from '@laphilosophia/strime'
 import { createReadStream } from 'fs'
 
 const stream = createReadStream('logs.ndjson')
@@ -72,7 +72,7 @@ for await (const row of ndjsonStream(stream, '{ id, name }', {
 For real-time processing with callback:
 
 ```ts
-import { subscribe } from 'strime'
+import { subscribe } from '@laphilosophia/strime'
 
 const subscription = subscribe(stream, '{ deviceId, temperature }', {
   onMatch: (data) => {
@@ -90,7 +90,7 @@ const subscription = subscribe(stream, '{ deviceId, temperature }', {
 For multiple queries against the same source:
 
 ```ts
-import { build } from 'strime'
+import { build } from '@laphilosophia/strime'
 
 const instance = build(buffer, { mode: 'indexed' })
 
