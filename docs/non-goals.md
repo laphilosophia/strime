@@ -1,35 +1,45 @@
-# JQL Project Non-Goals (Boundaries)
+# JQL Non-Goals
 
-To maintain a lean, high-performance projection engine, the following features are explicitly **out of scope** for JQL V2 and V3.
+This document describes features that are intentionally excluded from JQL's scope. These are not missing features awaiting implementation—they are deliberate design boundaries that preserve the engine's core guarantees.
 
-## 1. Data Aggregation
+## Data Aggregation
 
-JQL is NOT an aggregation engine.
+JQL does not compute aggregates such as sums, averages, counts, or group-by operations.
 
-- ❌ **No `@sum`, `@avg`, `@count`**: Aggregation requires cross-node context and accumulates state, breaking the forward-only streaming model.
-- ❌ **No Group-By**: JQL does not re-order or bucket data.
+Aggregation requires accumulating state across multiple values and emitting a result only after all relevant data has been seen. This conflicts fundamentally with the forward-only streaming model. An aggregation like "sum of all prices" cannot be computed incrementally without retaining all prices in memory or making a second pass—both of which violate JQL's memory and time guarantees.
 
-## 2. Scripting & User-Defined Code
+If you need aggregation, the intended pattern is to use JQL for extraction and pipe the results to a purpose-built aggregation tool. JQL handles the projection; something else handles the math.
 
-JQL is a declarative DSL, not a execution runtime.
+## User-Defined Code
 
-- ❌ **No Custom Logic**: Usage of user-provided callbacks or scripts during traversal is forbidden to maintain predictability and performance isolation.
-- ❌ **No Conditionals**: complex if/else logic inside schema is not supported.
+JQL does not execute user-provided functions during traversal.
 
-## 3. Parent/Global Context
+Allowing callbacks or custom logic inside the engine introduces unpredictable latency, potential infinite loops, and runtime errors that cannot be bounded. The engine's performance model depends on knowing exactly what operations will occur for each token. User code breaks that predictability.
 
-JQL directives are strictly node-local.
+Directives are the extension point, but even directives are constrained to O(1) operations with bounded allocation. There is no mechanism for injecting arbitrary computation.
 
-- ❌ **No `../` or Root Access**: Directives cannot reach outside their immediate primitive/object value.
+## Parent and Global Context
 
-## 4. Dynamic Schema Mutation
+JQL directives cannot access parent nodes, root values, or sibling fields.
 
-JQL is for projection (selection and preparation), not transformation into new shapes.
+A directive like `@formatCurrency` that needs the document's `locale` field to determine formatting would require either retaining the entire document or making a second pass to resolve references. Forward-only traversal means the parent is gone by the time the child is reached.
 
-- ❌ **No Shape Transformation**: You cannot map an object into a completely different structure (e.g., mapping an object to an array).
+Patterns that require parent context—"include this field only if the parent's type is X"—belong to post-processing logic, not the projection engine.
 
-## 5. Persistent Indexing
+## Schema Transformation
 
-JQL is an ephemeral engine.
+JQL projects fields from source to output. It does not restructure documents.
 
-- ❌ **No Disk-Bound Indexes**: Indexes are tied to memory buffer identity and are lost when the instance is GC'd.
+Operations like "flatten this nested object into a list" or "merge these two fields into one" require constructing new shapes that do not exist in the source. JQL's output shape mirrors the source shape, filtered to the requested fields. If you need structural transformation, apply it after JQL extracts the relevant data.
+
+## Persistent Indexing
+
+JQL indexes are ephemeral and memory-bound.
+
+The optional indexed mode builds a lightweight key-position map for `Uint8Array` buffers, but this index exists only in memory and is discarded when the instance is garbage collected. There is no disk-based indexing, no index persistence across process restarts, and no shared index between instances.
+
+Persistent indexing would require a storage layer, serialization format, and invalidation strategy—concerns that belong to a database, not a streaming projection engine.
+
+---
+
+These boundaries exist because crossing them would compromise the guarantees that make JQL useful. A projection engine that also aggregates, transforms, and indexes is no longer a projection engine—it's trying to be a database. JQL stays small so it can stay fast.

@@ -1,120 +1,162 @@
 # JQL Performance Contract
 
-This document provides ironclad guarantees regarding the computational and memory efficiency of the JQL engine.
+This document establishes the computational guarantees of the JQL engine and presents validation data from controlled benchmarks. The claims made here are empirically grounded and bounded by the constraints described in [Capabilities](capabilities.md).
 
-## 1. Complexity Guarantees
+## Complexity Guarantees
 
-- **Time Complexity**:
-  - **Streaming Mode**: $O(N)$ where $N$ is the total number of bytes in the JSON source. Every byte is touched exactly once in a forward-only pass. Skipped subtrees are traversed at the byte level with minimal branching.
-  - **Indexed Mode**: $O(K + S)$ where $K$ is the number of requested root-level keys and $S$ is the size of the selected subtrees.
-- **Memory Complexity**:
-  - **Constant Overhead**: $O(D)$ where $D$ is the maximum nesting depth of the JSON. Memory usage is **independent** of the total payload size (1MB or 1GB uses the same baseline).
+JQL's execution model provides the following complexity bounds:
 
-## 2. Directive Execution Budget
+**Time Complexity**
 
-JQL enforces a rigid execution budget for directives to prevent resource exhaustion:
+- Streaming mode: O(N) where N is the byte count of the source. Each byte is visited at most once during a forward-only traversal.
+- Indexed mode: O(K + S) where K is the number of requested root-level keys and S is the aggregate size of selected subtrees. The index lookup is O(1) per key.
 
-- **String Clamping**: `@substring` is capped at 10,000 characters per node.
-- **Precision Clamping**: `@formatNumber` is capped at 20 decimal places.
-- **O(1) Locality**: All default directives are guaranteed to be $O(1)$ relative to the node value.
+**Memory Complexity**
 
-## 3. V3.0.0 Battle-Proven Validation
+- O(D) where D is the maximum nesting depth of the JSON. Memory usage is independent of payload size—a 1GB file with depth 10 uses the same baseline memory as a 10KB file with the same structure.
 
-As of V3.0.0, JQL has passed rigorous stress tests demonstrating production-grade performance:
+These bounds are structural consequences of the forward-only design, not optimizations layered on top of a general-purpose parser.
+
+## Directive Execution Budget
+
+Directives are constrained to prevent resource exhaustion from pathological inputs:
+
+| Directive | Constraint | Rationale |
+|-----------|------------|-----------|
+| `@substring` | 10,000 character cap | Prevents unbounded string allocation |
+| `@formatNumber` | 20 decimal place cap | Prevents precision explosion |
+| All directives | O(1) relative to node value | Preserves linear overall traversal |
+
+## Benchmark Suite
+
+JQL maintains a comprehensive benchmark suite to validate performance guarantees. These tests are executed against every release candidate.
+
+### Extreme Nesting Stress Test
+
+Tests stack safety with 1000-level deep JSON structures:
+
+```ts
+// src/benchmarks/battle_test.ts
+async function testExtremeNesting(depth: number) {
+  let json = '{"root":';
+  for (let i = 0; i < depth; i++) json += '{"node":';
+  json += '"target"';
+  for (let i = 0; i < depth; i++) json += '}';
+  json += '}';
+
+  const buffer = new TextEncoder().encode(json);
+  const map = new JQLParser('{ root }').parse();
+  const engine = new Engine(map);
+
+  const start = performance.now();
+  const result = engine.execute(buffer);
+  const end = performance.now();
+  // Target: < 2ms for 1000 levels
+}
+```
+
+This test validates that the stack-based FSM handles arbitrary nesting without recursion-based stack overflow.
+
+### Million-Row Streaming Test
+
+Validates sustained throughput and memory stability over 1 million NDJSON rows:
+
+```ts
+// src/benchmarks/battle_test.ts
+async function testMassiveStreaming(rowCount: number) {
+  const stream = new ReadableStream({
+    pull(controller) {
+      for (let i = 0; i < 1000 && enqueued < rowCount; i++, enqueued++) {
+        const item = {
+          id: enqueued,
+          timestamp: Date.now(),
+          data: 'X'.repeat(100),
+          meta: { index: enqueued, type: 'telemetry' }
+        };
+        controller.enqueue(new TextEncoder().encode(JSON.stringify(item) + '\n'));
+      }
+      if (enqueued >= rowCount) controller.close();
+    }
+  });
+
+  for await (const match of ndjsonStream(stream, '{ id, meta { type } }')) {
+    processed++;
+    // Memory logged every 250k rows to detect leaks
+  }
+  // Target: < 4.5s for 1M rows, memory stable
+}
+```
+
+### Large File Throughput Test
+
+Measures raw throughput on 1GB+ payloads:
+
+```ts
+// src/test/v3_simple_benchmark.ts
+async function simpleBenchmark() {
+  const buffer = readFileSync('data/1GB.json');
+
+  // Warmup run
+  await query(buffer, '{ id }');
+
+  // 3 measured runs
+  const times: number[] = [];
+  for (let i = 0; i < 3; i++) {
+    const start = performance.now();
+    await query(buffer, '{ id }');
+    times.push(performance.now() - start);
+  }
+
+  const median = times.sort((a, b) => a - b)[1];
+  const throughput = (buffer.length * 8) / (median * 1000);  // Mbps
+  // Target: > 800 Mbps sustained
+}
+```
+
+## Benchmark Results
+
+| Test | Target | Measured | Status |
+|------|--------|----------|--------|
+| 1M NDJSON rows | < 4.5s | ~4.2s | ✓ |
+| 1GB throughput | > 800 Mbps | 809-939 Mbps | ✓ |
+| Deep nesting (1k) | < 2ms | < 1ms | ✓ |
+| Skip vs Select ratio | < 2x | 0.91x | ✓ |
+| Memory stability | Flat | Confirmed | ✓ |
 
 ### Zero-Copy Raw Emission
 
-**Test**: 1GB JSON file, simple projection `{ id }`
-
-| Mode            | Duration | Throughput      | Overhead     |
-| --------------- | -------- | --------------- | ------------ |
-| **Object Mode** | 10.03s   | 879.27 Mbps     | baseline     |
-| **Raw Mode**    | 9.40s    | **938.60 Mbps** | **-6.3%** ✅ |
-
-**Result**: Raw emission mode is **6.3% faster** than object materialization.
-
-**Why?**
-
-- Zero string allocation
-- Zero object construction
-- Zero GC pressure
-- True zero-copy byte streaming
-
-> [!NOTE]
-> Raw mode includes cross-chunk assembly and byte-range tracking overhead, yet still outperforms object mode. This validates the zero-copy architecture.
+| Mode | Throughput | Overhead |
+|------|------------|----------|
+| Object Mode | 879 Mbps | baseline |
+| Raw Mode | 939 Mbps | -6.3% |
 
 ### Pathological String Handling
 
-**Test**: 100MB JSON with 50MB string values
+| Scenario | Throughput | Ratio |
+|----------|------------|-------|
+| Skip 50MB strings | 1514 Mbps | baseline |
+| Select 50MB strings | 1665 Mbps | 0.91x |
 
-| Scenario        | Duration | Throughput       | Ratio        |
-| --------------- | -------- | ---------------- | ------------ |
-| **Skip Path**   | 0.55s    | 1513.74 Mbps     | baseline     |
-| **Select Path** | 0.50s    | **1664.62 Mbps** | **0.91x** ✅ |
+The 0.91x ratio demonstrates no pathological degradation on large values.
 
-**Result**: Selecting massive strings is **faster** than skipping them.
+## Regression Thresholds
 
-**Why?**
+Every release must pass these thresholds:
 
-- Skip mode: structural tracking overhead
-- Select mode: V8 string interning + pointer copy
-- No pathological degradation with large values
+| Benchmark | Threshold | Consequence of Failure |
+|-----------|-----------|----------------------|
+| 1M NDJSON | < 4.5s | Release blocked |
+| 1GB stress | < 11s | Release blocked |
+| Raw mode overhead | < 5% | Release blocked |
+| Large string select/skip | < 2x | Release blocked |
 
-> [!IMPORTANT]
-> Select/Skip ratio of 0.91x proves the engine has no worst-case string handling issues. Most JSON parsers degrade 5-10x on large strings.
+## Interpretation Notes
 
-### Superlinear Scaling
-
-**Baseline**: 122MB in 4.38s (222.8 Mbps)
-**Current**: 1GB in 10.40s (808.5 Mbps)
-**Expected** (linear): 37.74s
-**Actual**: 10.40s → **3.6x better than linear**
-
-**Why?**
-
-- I/O amortization on large files
-- Branch predictor warm-up
-- Cache-friendly sequential access
-
-## 4. V2.2.0 Battle-Tested Guarantees
-
-As of V2.2.0, JQL provides the following hardware-aligned performance guarantees:
-
-- **GC-free Steady State**: The engine uses pre-allocated `Uint8Array` buffers and object recycling. Once the stream starts, zero garbage is generated for tokenization, ensuring no "Stop-the-world" GC pauses in long-running FinTech or telemetry streams.
-- **Byte-level NDJSON Path**: The NDJSON adapter operates directly on binary chunks. No intermediate string decoding/splitting occurs until a field is explicitly matched, maximizing IO-to-CPU efficiency.
-- **Allocation-free Hot Loop**: During the primary FSM traversal, no new objects are allocated. Tokens and results are reused or mutated in-place where possible, putting JQL in the performance bracket usually reserved for WASM/Native implementations.
-
-## 5. Golden Benchmark Set (Regression Shield)
-
-Every release must pass the following "Golden Set" with zero performance regression:
-
-| Benchmark                 | Target      | Goal                                     |
-| :------------------------ | :---------- | :--------------------------------------- |
-| **1M NDJSON**             | < 4.5s      | Throughput stability (220k+ match/s)     |
-| **1GB Stress**            | < 11s       | Large file handling (>800 Mbps)          |
-| **Skip-Heavy JSON**       | O(N) Linear | Verification of counting mode efficiency |
-| **Deep Nesting (1k)**     | < 2ms       | Stack-safety & recursion-free stability  |
-| **Small Payload Latency** | < 0.1ms     | Cold-start performance for serverless    |
-| **emitRaw Overhead**      | < 5%        | Zero-copy validation                     |
-| **Large String (50MB)**   | < 2x skip   | No pathological cases                    |
+The throughput figures represent sustained rates on the specific hardware used for benchmarking (development workstation, Node.js LTS). Performance on different hardware, under memory pressure, or with different JSON structural characteristics may vary. The complexity bounds, however, are invariant—O(N) time and O(D) memory hold regardless of environment.
 
 ---
 
-> [!IMPORTANT]
-> Failure to meet these metrics in a PR constitutes a regression and will block the release.
+References:
 
-## 6. Defensible Claims
-
-Based on the battle-proven validation results, JQL can defensibly claim:
-
-> **"Fastest streaming JSON projection engine in pure JavaScript"**
-
-**Evidence**:
-
-- ✅ 938 Mbps sustained throughput on 1GB files
-- ✅ 1.6 Gbps on pathological string payloads
-- ✅ Zero-copy raw emission faster than object mode
-- ✅ No worst-case degradation scenarios found
-- ✅ Superlinear scaling on large files
-
-**Domain**: High-volume, forward-only, projection & piping workloads (logs, telemetry, NDJSON streams).
+- Benchmark methodology follows patterns from V8 engine performance testing
+- Throughput measurements use `performance.now()` for sub-millisecond precision

@@ -1,36 +1,133 @@
-# JQL Error Semantics & API Contract
+# JQL Error Handling
 
-This document defines how JQL handles malformed data, schema mismatches, and execution failures.
+JQL distinguishes between recoverable conditions and fatal errors. This distinction matters because JQL is designed for streaming contexts where partial results may still be valuable. The error model is explicit: every error type has a defined behavior, and the caller knows what to expect.
 
-## 1. Failure Categories
+## Error Hierarchy
 
-| Category | Behavior | Result |
-| :--- | :--- | :--- |
-| **Syntax Error (JQL)** | **Hard Abort** | Throws `Error` during `parse()`. |
-| **Malformed JSON (Structural)** | **Resilient Skip** | Skips invalid tokens and attempts to sync on next `{`, `}`, `[`, `]`. |
-| **Corrupted Token (Literal)** | **Hard Abort** | Throws `Error` (e.g., `truX` instead of `true`). Prevents state sync loss. |
-| **Schema Mismatch** | **Silent Drop** | Requested key not found in JSON → key omitted or `@default`. |
-| **Directive Error** | **Safe Fallback** | `null` or un-transformed value (see below). |
+All JQL errors extend a common base class that provides structured error information:
 
-## 2. Directive Failure Modes
+```ts
+// src/core/errors.ts
+export class JQLError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,      // Machine-readable code
+    public readonly position?: number, // Byte offset
+    public line?: number               // Line number (NDJSON)
+  ) {
+    super(message)
+    this.name = 'JQLError'
+  }
+}
+```
 
-Directives are designed to be "best-effort" unless strict mode is enabled.
+### Error Types
 
-- **`@coerce`**: If type casting fails (e.g., `"abc"` to number), it returns the original value or `null` depending on implementation.
-- **`@default`**: Only triggered if the key is entirely missing or explicitly `null` in source.
-- **`@substring`**: If offsets are out of bounds, it returns an empty string or the clamped string.
+| Error Class | Code | Behavior | Recoverable |
+|-------------|------|----------|-------------|
+| `TokenizationError` | `TOKENIZATION_ERROR` | Invalid JSON syntax encountered | No |
+| `ParseError` | `PARSE_ERROR` | Invalid JQL query syntax | No |
+| `StructuralMismatchError` | `STRUCTURAL_MISMATCH` | JSON structure doesn't match expectation | No |
+| `AbortError` | `ABORTED` | Operation cancelled via AbortSignal | Controlled |
+| `BudgetExhaustedError` | `BUDGET_EXHAUSTED_*` | Execution limit reached | Controlled |
 
-## 3. Streaming Interruptions
+## Failure Categories
 
-- JQL processes data in chunks. If the stream closes early, the engine returns a **Result Snapshot** of what it managed to materialize before the EOF, provided the JSON structure up to that point was valid.
+### Fatal Errors
+
+These errors terminate processing immediately:
+
+**Tokenization Errors**: Invalid JSON syntax such as unquoted keys, trailing commas, or malformed literals.
+
+```ts
+// Thrown when: {"key": truX}
+throw new TokenizationError("Invalid literal: expected 'true', got 'truX'", position)
+```
+
+**Parse Errors**: Invalid JQL query syntax.
+
+```ts
+// Thrown when query is: { name @unknownDirective }
+throw new ParseError("Expected identifier at 15", position)
+```
+
+### Controlled Termination
+
+These are not errors in the failure sense—they indicate intentional halts:
+
+**Abort Errors**: Triggered by an `AbortSignal`. Useful for cancelling long-running operations.
+
+**Budget Exhaustion**: Triggered when execution limits are reached. Output up to the last completed emission remains valid.
+
+```ts
+// src/core/engine.ts
+if (this.budget.maxMatches && this.matchedCount > this.budget.maxMatches) {
+  throw new BudgetExhaustedError(`Match limit exceeded: ${this.budget.maxMatches}`, 'MATCHES')
+}
+```
+
+### Silent Conditions
+
+These conditions do not throw errors:
+
+**Missing Fields**: If a requested field is absent, it is omitted from output unless `@default` is specified.
+
+**Type Mismatches in Directives**: If a directive receives an incompatible type (e.g., `@substring` on a number), it returns the original value unchanged.
+
+## NDJSON Error Handling
+
+The NDJSON adapter provides fault-tolerant processing for line-delimited streams:
+
+```ts
+// src/adapters/ndjson.ts
+for await (const row of ndjsonStream(stream, '{ id, name }', {
+  skipErrors: true,
+  onError: (info) => {
+    console.error(`Line ${info.lineNumber}: ${info.error.message}`)
+  },
+  maxLineLength: 1024 * 1024  // DoS protection
+})) {
+  // Process valid rows
+}
+```
+
+With `skipErrors: true`, malformed lines are reported via `onError` and skipped. Processing continues with the next line. With `skipErrors: false` (default), the first error terminates the stream.
+
+## Usage Patterns
+
+### Catching Specific Errors
+
+```ts
+import { query, TokenizationError, StructuralMismatchError } from 'jql'
+
+try {
+  const result = await query(data, schema)
+} catch (error) {
+  if (error instanceof TokenizationError) {
+    console.error(`Invalid JSON at byte ${error.position}`)
+  } else if (error instanceof StructuralMismatchError) {
+    console.error(`Unexpected structure: ${error.message}`)
+  }
+}
+```
+
+### Budget-Limited Execution
+
+```ts
+import { query, BudgetExhaustedError } from 'jql'
+
+try {
+  const result = await query(stream, '{ id }', {
+    budget: { maxMatches: 1000, maxDurationMs: 5000 }
+  })
+} catch (error) {
+  if (error instanceof BudgetExhaustedError) {
+    console.log(`Stopped at limit: ${error.limitType}`)
+    // Partial results already emitted via onMatch
+  }
+}
+```
 
 ---
 
-## 4. Error Table
-
-| Error Type | Default Action | Configurable? |
-| :--- | :--- | :--- |
-| Invalid JSON Syntax | Throw | No |
-| Undefined Directive | ignore | No |
-| Missing Path | Skip/Ignore | Yes (via `@default`) |
-| Buffer Overflow | Throw | No |
+For streaming semantics, see [Capabilities](capabilities.md). For NDJSON processing, see [Quick Start](quick-start.md).

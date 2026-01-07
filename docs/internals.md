@@ -1,51 +1,133 @@
-# JQL Internals: How it's so fast 🏎️
+# JQL Internals
 
-JQL V2.2.0 reaches sub-5s performance for 1M rows through hardware-aligned engineering. This document explains the "Magic" under the hood.
+JQL achieves its performance characteristics not through algorithmic novelty but through disciplined engineering choices that align with how modern JavaScript runtimes optimize execution. The techniques described here are individually well-known; the contribution is in their consistent application to a JSON projection engine.
 
-## 1. GC-Free Steady State ♻️
+## Allocation Discipline
 
-Standard JSON parsers create millions of temporary objects (tokens, keys, values) which trigger frequent "Stop-the-world" Garbage Collection pauses.
+The primary bottleneck in high-throughput JSON processing is not CPU cycles but garbage collection. Traditional parsers allocate objects for every token, key, and value—millions of small objects that trigger frequent GC pauses. JQL's tokenizer is designed to reach a steady state where the hot loop allocates nothing.
 
-**JQL's Solution**:
+The tokenizer maintains a single 64KB `Uint8Array` buffer for accumulating string and number bytes during tokenization. When a token is complete, its value is decoded and the buffer offset resets—the array itself is never reallocated. A single `reusableToken` object is mutated and passed to the callback rather than constructing a new token object per emission.
 
-- **Tokenizer Buffering**: We use a single, pre-allocated `64KB Uint8Array` for all token accumulation.
-- **Token Recycling**: A single `reusableToken` object is mutated and passed to the callback. No new objects are allocated per token.
-- **Zero GC**: Once the engine starts, the heap memory remains perfectly flat.
+```ts
+// src/core/tokenizer.ts
+export class Tokenizer {
+  private buffer = new Uint8Array(65536)  // Single pre-allocated buffer
+  private bufferOffset = 0
+  private reusableToken: Token = { type: TokenType.NULL, start: 0, end: 0 }
+  // ...
 
-## 2. Binary Line Splitting (The NDJSON Shortcut) 🏎️
+  private emit(type: TokenType, start: number, end: number, onToken: (t: Token) => void, value?: unknown): void {
+    this.reusableToken.type = type
+    this.reusableToken.start = start
+    this.reusableToken.end = end
+    this.reusableToken.value = value
+    onToken(this.reusableToken)  // Same object reference, mutated in place
+  }
+}
+```
 
-NDJSON processing often involves: `Chunk (Byte) -> Decode (String) -> Split (String[]) -> Encode (Byte) -> Parser`.
+The caller receives the same object reference repeatedly; if persistence is needed, the caller must clone. This pattern has a consequence: the heap profile of JQL during sustained processing appears flat.
 
-**JQL's Solution**:
+## String Interning
 
-- We perform linear scans for the `newline (10)` byte directly on the `Uint8Array`.
-- No strings are created for the line itself.
-- The line is passed as a `subarray` view to the engine, avoiding memory copies.
+JSON documents in log and telemetry contexts exhibit high key repetition. A stream of ten million log entries may contain the same `"timestamp"`, `"level"`, and `"message"` keys repeated verbatim. Decoding these strings ten million times via `TextDecoder` is wasteful.
 
-## 3. Integer Fast-Paths 🔢
+The tokenizer maintains a small string cache for strings shorter than 32 bytes, holding up to 500 entries:
 
-`parseFloat()` and `Number()` are heavy.
+```ts
+// src/core/tokenizer.ts
+private stringCache = new Map<string, string>()
+// ...
 
-**JQL's Solution**:
+private decodeBuffer(): string {
+  const len = this.bufferOffset
+  if (len === 0) return ''
+  if (len < 32) {
+    let cacheKey = ''
+    for (let i = 0; i < len; i++) {
+      cacheKey += String.fromCharCode(this.buffer[i])
+    }
+    const cached = this.stringCache.get(cacheKey)
+    if (cached !== undefined) return cached
+    if (this.stringCache.size < 500) {
+      this.stringCache.set(cacheKey, cacheKey)
+    }
+    return cacheKey
+  }
+  return this.decoder.decode(this.buffer.subarray(0, len))
+}
+```
 
-- We implement a custom, linear-time integer parser that operates directly on bytes.
-- If a token is a simple integer (no `.` or `e`), we bypass the JS engine's heavy parsing logic entirely.
+The 32-byte threshold ensures that only short, frequently repeated keys are cached. The 500-entry limit prevents unbounded memory growth from high-cardinality fields.
 
-## 4. Token Caching 💎
+## Integer Fast Path
 
-JSON logs repeat keys like `"id"`, `"timestamp"`, and `"level"` millions of times.
+Numeric parsing in JavaScript typically involves `parseFloat()` or the `Number()` constructor, both of which handle the full JSON number grammar including decimals, exponents, and signs. For the common case of simple positive integers, this generality is overhead.
 
-**JQL's Solution**:
+```ts
+// src/core/tokenizer.ts
+private parseNumber(): number {
+  const len = this.bufferOffset
+  // Fast path for positive integers
+  let res = 0
+  let isSimple = true
+  for (let i = 0; i < len; i++) {
+    const b = this.buffer[i]
+    if (b >= 48 && b <= 57) {          // ASCII 0-9
+      res = res * 10 + (b - 48)        // Shift-and-add accumulation
+    } else {
+      isSimple = false
+      break
+    }
+  }
+  if (isSimple) return res
+  return parseFloat(this.decoder.decode(this.buffer.subarray(0, len)))  // Fallback
+}
+```
 
-- JQL maintains a small, fixed-size cache of recently decoded strings (under 32 bytes).
-- If a byte sequence matches a cached key, we return the cached string reference instead of calling `TextDecoder.decode()`.
+If a non-digit character is encountered (decimal point, exponent marker, negative sign), the fast path aborts and falls back to `parseFloat()`.
 
-## 5. Why not Uint32/SWAR? 🧪
+## Binary Line Splitting
 
-We experimented with wide-reads (Uint32/SWAR) to leapfrog 4 bytes at a time. While micro-benchmarks showed a 50%+ gain, real-world JSON is so dense with structural characters that the overhead of alignment checks and bitmasking was a net negative.
+The NDJSON adapter processes streams of newline-delimited JSON objects. A naive implementation would decode the byte stream to a string, split on newlines, re-encode each line to bytes, and pass to the parser. JQL operates entirely on `Uint8Array` chunks:
 
-**V8's native `Uint8Array` loop vectorization is a beast**, and JQL is designed to play to its strengths.
+```ts
+// src/adapters/ndjson.ts
+while (start < chunk.length) {
+  const newlineIndex = chunk.indexOf(10, start)  // 10 is \n in ASCII
 
-## 6. Forward-Only FSM 📡
+  if (newlineIndex === -1) {
+    leftover = chunk.slice(start)  // Save incomplete line for next chunk
+    break
+  }
 
-JQL never backtracks. It maintains a stack-based State Machine that processes data in a single pass. This ensures $O(N)$ time complexity and $O(D)$ memory complexity, where $D$ is the nesting depth.
+  const line = chunk.subarray(start, newlineIndex)  // Zero-copy view
+  // ...
+  engine.reset()
+  const result = engine.execute(line)
+  yield result
+
+  start = newlineIndex + 1
+}
+```
+
+No strings are created for the line content itself—decoding happens only for matched field values during projection. The engine is recycled between lines via `reset()` without reallocating buffers.
+
+## Forward-Only State Machine
+
+The engine maintains a stack-based finite state machine that tracks the current position in the JSON structure. This state machine moves strictly forward—each byte advances the position, and no operation requires revisiting earlier bytes.
+
+The consequence is that time complexity is O(N) where N is the byte count, and memory complexity is O(D) where D is the maximum nesting depth. A 10GB file with shallow nesting uses the same memory baseline as a 10KB file with the same structure.
+
+## What Is Not Optimized
+
+JQL does not use SIMD intrinsics or wide-register tricks (SWAR). Experiments with `Uint32Array` reads for parallel byte scanning showed modest gains in micro-benchmarks but net regressions in real-world JSON due to the overhead of alignment checks and bitmask operations. V8's native loop vectorization on `Uint8Array` iteration—where the access pattern is simple and predictable—proved more effective than manual SIMD emulation.
+
+JQL also does not implement structural indexing beyond the optional root-key offset map. Deep indexing strategies that would allow arbitrary path random-access conflict with the streaming model and are excluded by design.
+
+---
+
+References:
+
+- V8 engine optimization patterns for TypedArray operations
+- NDJSON specification and streaming processing patterns

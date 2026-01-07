@@ -1,10 +1,12 @@
 # JQL Query Language
 
-JQL uses a structural selection syntax inspired by GraphQL's projection but optimized for high-speed binary streaming.
+JQL uses a structural selection syntax designed for extracting fields from JSON documents. The syntax is intentionally minimal—it describes what to select, not how to transform. This document serves as a reference for the query grammar.
 
-## 🧱 Selection Syntax
+## Selection Syntax
 
-### Basic Objects
+A JQL query describes a projection: which fields to extract from the source document. The basic unit is a field name enclosed in braces.
+
+### Object Selection
 
 Select specific keys from an object:
 
@@ -12,83 +14,104 @@ Select specific keys from an object:
 { id, name, email }
 ```
 
-### Nested Objects
+Given `{"id": 1, "name": "Alice", "email": "a@b.com", "password": "secret"}`, this produces `{"id": 1, "name": "Alice", "email": "a@b.com"}`.
 
-Project deep structures:
+### Nested Selection
+
+Project into nested structures by nesting the selection:
 
 ```jql
 {
   id,
   user {
     name,
-    metadata { type }
+    metadata { role }
   }
 }
 ```
 
-### Arrays
+Each level of nesting corresponds to a level of depth in the source document. Fields not mentioned are excluded.
 
-JQL automatically iterates over arrays. The selection inside `{ }` is applied to every item in the array.
+### Array Handling
+
+JQL automatically applies the selection to each element of an array. You do not need special syntax to iterate:
 
 ```jql
-{
-  title,
-  tags { name }
-}
+{ title, tags { name } }
 ```
+
+If `tags` is an array, this extracts `name` from each element. The output preserves the array structure.
+
+## Aliasing
+
+Rename fields in the output using the `alias: field` syntax:
+
+```jql
+{ username: account_login, status: user_status }
+```
+
+This selects `account_login` from the source but outputs it as `username`. Aliases apply to the output key only—the source field name is used for matching.
+
+## Directives
+
+Directives modify values during extraction. They are applied after the value is matched but before it is emitted. All directives are O(1) operations with bounded allocation.
+
+### `@default(value: ...)`
+
+Provides a fallback if the field is missing or null:
+
+```jql
+{ status @default(value: "unknown") }
+```
+
+If `status` is absent or `null`, the output contains `"unknown"`.
+
+### `@substring(start: ..., len: ...)`
+
+Extracts a substring. Capped at 10,000 characters:
+
+```jql
+{ bio @substring(start: 0, len: 100) }
+```
+
+### `@formatNumber(dec: ...)`
+
+Formats a number to fixed decimal places. Capped at 20 decimals:
+
+```jql
+{ price @formatNumber(dec: 2) }
+```
+
+### `@coerce(type: ...)`
+
+Coerces the value to a specified type:
+
+```jql
+{ count @coerce(type: "number") }
+```
+
+Supported types: `"number"`, `"string"`.
+
+## Grammar Summary
+
+```
+query       := '{' field_list '}'
+field_list  := field (',' field)*
+field       := alias? identifier directive* nested?
+alias       := identifier ':'
+nested      := '{' field_list '}'
+directive   := '@' identifier ('(' arg_list ')')?
+arg_list    := arg (',' arg)*
+arg         := identifier ':' value
+value       := string | number | boolean
+```
+
+## Error Behavior
+
+- **Missing fields**: Silently omitted unless `@default` is specified.
+- **Type mismatch**: Directives return the original value if the type is incompatible (e.g., `@substring` on a number).
+- **Malformed query**: Throws a parse error with position information.
 
 ---
 
-## 🏷️ Aliasing
-
-Rename fields in the output:
-
-```jql
-{ username: account.login, status: user_status }
-```
-
----
-
-## ⚡ Directives
-
-Directives allow field manipulation during the projection phase with **Zero Allocation**.
-
-### `@default(value)`
-
-Provides a fallback if the key is missing.
-
-```jql
-{ status @default("unknown") }
-```
-
-### `@substring(pos, len?)`
-
-Clamps strings directly at the byte level.
-
-```jql
-{ bio @substring(0, 100) }
-```
-
-### `@formatNumber(decimals)`
-
-Formats numbers during materialization.
-
-```jql
-{ price @formatNumber(2) }
-```
-
-### `@uppercase` / `@lowercase`
-
-Transforms string case.
-
-```jql
-{ category @uppercase }
-```
-
----
-
-## 🛡️ Error Tolerance
-
-- **Missing Keys**: Keys not found in the source are silently omitted unless a `@default` is provided.
-- **Malformed JSON**: JQL implements **Resilient Skip**. If it encounters structural corruption (e.g., a missing colon), it will attempt to resynchronize at the next structural token (`{`, `}`, `[`, `]`).
-- **Binary Corruption**: Corrupted literals (e.g., `truX` instead of `true`) trigger a **Hard Abort** to prevent state desynchronization.
+For execution semantics and streaming behavior, see [Capabilities](capabilities.md). For API usage, see [API Reference](api-reference.md).

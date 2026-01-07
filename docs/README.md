@@ -1,31 +1,22 @@
-# JQL Documentation 📚
+# JQL Documentation
 
-Welcome to the official documentation for **JQL (JSON Query Language)**. JQL is a high-performance, streaming-first projection engine designed for the high-intensity requirements of modern data pipelines.
+JQL is a streaming JSON projection engine. It extracts fields from JSON documents without parsing the entire structure, enabling constant-memory processing of arbitrarily large files.
 
-## 🏁 Getting Started
+## Getting Started
 
-> If you are new to JQL, start here:
+- [Quick Start](quick-start.md) — Installation and basic usage
+- [Query Language](query-language.md) — Selection syntax, aliasing, directives
+- [CLI Guide](cli-guide.md) — Command-line interface
 
-- [**Quick Start**](quick-start.md) - Comprehensive guide with examples, streaming, and real-world patterns.
-- [**CLI Guide**](cli-guide.md) - Master the command-line interface for shell pipelines and data exploration.
-- [**Mental Model**](mental-model.md) - Understand the core concepts and architecture of JQL.
-- [**Query Language Guide**](query-language.md) - Learn the JQL syntax, aliasing, and directives.
-- [**API Reference**](api-reference.md) - Deep dive into Runtimes, Adapters, and the Core Engine.
+## Architecture
 
-## 🚀 Performance & Architecture
+- [Mental Model](mental_model.md) — Core concepts and design philosophy
+- [Internals](internals.md) — Implementation techniques
+- [Capabilities](capabilities.md) — Execution guarantees and constraints
+- [Non-Goals](non-goals.md) — Intentional exclusions
 
-Understand why JQL is the fastest JSON engine for the edge:
+## Reference
 
-- [**Internals Deep-Dive**](internals.md) - Learn about GC-Free tokenization, binary line splitting, and object recycling.
-- [**Performance Contract**](performance.md) - Our ironclad guarantees for time and memory complexity.
-- [**Capabilities**](capabilities.md) - JQL's capabilities and limitations.
-
-## 🛡️ Reliability
-
-- [**Error Handling**](error-handling.md) - JQL's behavior with malformed JSON and corrupted streams.
-- [**Non Goals**](non-goals.md) - JQL's non-goals and trade-offs.
-
----
-
-> [!TIP]
-> Use the [JQL CLI](../README.md#cli-usage) for a zero-configuration experience in your terminal.
+- [API Reference](api-reference.md) — Complete API documentation
+- [Error Handling](error-handling.md) — Error types and recovery patterns
+- [Performance](performance.md) — Benchmarks and complexity guarantees
