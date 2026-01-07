@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature for JQL
+about: Suggest a new feature for Strime
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''

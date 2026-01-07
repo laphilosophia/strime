@@ -3,43 +3,43 @@ import { join } from 'path'
 import { build } from '../runtime/index'
 
 async function runStressTest() {
-  const filePath = join(process.cwd(), 'data', 'large-file.json')
+  const filePath = join(process.cwd(), 'data', '1gb_10lvl_nested_formatted.json')
   const buffer = readFileSync(filePath)
 
   if (!buffer) {
     throw new Error(`File not found: ${filePath}`)
   }
 
-  console.log('--- JQL Large File Stress Test ---')
+  console.log('--- Strime Large File Stress Test ---')
   console.log(`File Size: ${(buffer.length / (1024 * 1024)).toFixed(2)} MB`)
 
   // 1. Single Field Extraction (Skip-Heavy)
   console.log('\n[1] Extracting single field (type) from root...')
   console.time('Skip-Heavy (Streaming)')
-  const jqlStreaming = build(buffer, { mode: 'streaming' })
-  const result1 = await jqlStreaming.read('{ type }')
+  const strimeStreaming = build(buffer, { mode: 'streaming' })
+  const result1 = await strimeStreaming.read('{ type }')
   console.timeEnd('Skip-Heavy (Streaming)')
   console.log('Sample Result:', result1)
 
   // 2. Deep Field Extraction
   console.log('\n[2] Extracting nested fields (actor.login, repo.name)...')
   console.time('Deep Extraction')
-  const result2 = await jqlStreaming.read('{ actor { login }, repo { name } }')
+  const result2 = await strimeStreaming.read('{ actor { login }, repo { name } }')
   console.timeEnd('Deep Extraction')
   console.log('Sample Result:', result2)
 
   // 3. Repeated Query with Indexing
   console.log('\n[3] Repeated Query (Indexed Mode)...')
-  const jqlIndexed = build(buffer, { mode: 'indexed' })
+  const strimeIndexed = build(buffer, { mode: 'indexed' })
 
   console.log('First pass (indexing)...')
   console.time('Indexed Pass 1')
-  await jqlIndexed.read('{ type }')
+  await strimeIndexed.read('{ type }')
   console.timeEnd('Indexed Pass 1')
 
   console.log('Second pass (jumping)...')
   console.time('Indexed Pass 2')
-  const result3 = await jqlIndexed.read('{ type }')
+  const result3 = await strimeIndexed.read('{ type }')
   console.timeEnd('Indexed Pass 2')
   console.log('Result 3:', result3)
 
@@ -58,8 +58,8 @@ async function runStressTest() {
   })
 
   console.time('ReadableStream Pass')
-  const jqlStream = build(stream)
-  const result4 = await jqlStream.read('{ id, created_at, public }')
+  const strimeStream = build(stream)
+  const result4 = await strimeStream.read('{ id, created_at, public }')
   console.timeEnd('ReadableStream Pass')
   console.log('Sample Row (Stream):', result4[0])
 }

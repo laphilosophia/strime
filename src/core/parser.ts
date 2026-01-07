@@ -13,7 +13,7 @@ export type SelectionMap = Record<
     }
 >
 
-export class JQLParser {
+export class StrimeParser {
   private pos = 0
   private schema: string
 

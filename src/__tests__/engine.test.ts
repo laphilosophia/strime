@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 
 describe('Engine', () => {
   it('should query a simple object', () => {
@@ -8,7 +8,7 @@ describe('Engine', () => {
     const schema = '{ name, email }'
 
     const buffer = new TextEncoder().encode(json)
-    const map = new JQLParser(schema).parse()
+    const map = new StrimeParser(schema).parse()
 
     const engine = new Engine(map)
     const result = engine.execute(buffer)
@@ -33,7 +33,7 @@ describe('Engine', () => {
     const schema = '{ name, address { street, city } }'
 
     const buffer = new TextEncoder().encode(json)
-    const map = new JQLParser(schema).parse()
+    const map = new StrimeParser(schema).parse()
     const engine = new Engine(map)
     const result = engine.execute(buffer)
 
@@ -57,7 +57,7 @@ describe('Engine', () => {
     const schema = '{ users { name } }'
 
     const buffer = new TextEncoder().encode(json)
-    const map = new JQLParser(schema).parse()
+    const map = new StrimeParser(schema).parse()
     const engine = new Engine(map)
     const result = engine.execute(buffer)
 
@@ -77,7 +77,7 @@ describe('Engine', () => {
       const schema = '{ name, tags }'
 
       const buffer = new TextEncoder().encode(json)
-      const map = new JQLParser(schema).parse()
+      const map = new StrimeParser(schema).parse()
 
       const engine1 = new Engine(map)
       const result1 = engine1.execute(buffer)
@@ -95,7 +95,7 @@ describe('Engine', () => {
       const schema = '{ key }'
 
       const buffer = new TextEncoder().encode(json)
-      const map = new JQLParser(schema).parse()
+      const map = new StrimeParser(schema).parse()
       const engine = new Engine(map)
 
       // Use 32-byte chunks to split the string
@@ -112,7 +112,7 @@ describe('Engine', () => {
       const schema = '{ wanted }'
 
       const buffer = new TextEncoder().encode(json)
-      const map = new JQLParser(schema).parse()
+      const map = new StrimeParser(schema).parse()
       const engine = new Engine(map)
 
       // Small chunks to ensure skip spans multiple
@@ -124,7 +124,7 @@ describe('Engine', () => {
     it('should enforce minimum chunk size', () => {
       const json = '{"a":1}'
       const buffer = new TextEncoder().encode(json)
-      const map = new JQLParser('{ a }').parse()
+      const map = new StrimeParser('{ a }').parse()
       const engine = new Engine(map)
 
       // Even with tiny chunkSize, should work (min enforced internally)

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createReadStream, readFileSync } from 'fs'
-import { join, dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -10,13 +10,13 @@ const pkg = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-
 const VERSION = pkg.version
 
 const HELP_TEXT = `
-JQL - The fastest streaming JSON projection engine
+Strime - Streaming JSON projection engine
 
-Usage: jql [options] [file] <schema>
+Usage: strime [options] [file] <schema>
 
 Arguments:
   file              JSON file to process (omit to read from stdin)
-  schema            JQL query schema (e.g., "{ id, name }")
+  schema            Query schema (e.g., "{ id, name }")
 
 Options:
   --ndjson, --jsonl       Process NDJSON (newline-delimited JSON)
@@ -28,12 +28,12 @@ Options:
   --help                  Show this help
 
 Examples:
-  jql data.json "{ id, name }"
-  cat data.json | jql "{ user { email } }"
-  jql --ndjson logs.log "{ timestamp, message }"
-  jql --ndjson --skip-errors messy.log "{ id }"
-  jql --ndjson --max-line-length 1048576 huge.log "{ id }"
-  echo '{"id":1,"name":"Alice"}' | jql --pretty "{ id, name }"
+  strime data.json "{ id, name }"
+  cat data.json | strime "{ user { email } }"
+  strime --ndjson logs.log "{ timestamp, message }"
+  strime --ndjson --skip-errors messy.log "{ id }"
+  strime --ndjson --max-line-length 1048576 huge.log "{ id }"
+  echo '{"id":1,"name":"Alice"}' | strime --pretty "{ id, name }"
 `
 
 interface CLIArgs {
@@ -88,7 +88,7 @@ function parseArgs(args: string[]): CLIArgs {
       i++ // Skip next arg
     } else if (arg.startsWith('--')) {
       console.error(`Error: Unknown option '${arg}'`)
-      console.error('Run "jql --help" for usage information')
+      console.error('Run "strime --help" for usage information')
       process.exit(1)
     } else {
       params.push(arg)
@@ -103,7 +103,7 @@ function parseArgs(args: string[]): CLIArgs {
     result.schema = params[1]
   } else if (params.length > 2) {
     console.error('Error: Too many arguments')
-    console.error('Run "jql --help" for usage information')
+    console.error('Run "strime --help" for usage information')
     process.exit(1)
   }
 
@@ -128,7 +128,7 @@ async function main() {
   // Validate schema
   if (!args.schema) {
     console.error('Error: Missing required argument <schema>')
-    console.error('Run "jql --help" for usage information')
+    console.error('Run "strime --help" for usage information')
     process.exit(1)
   }
 

@@ -166,10 +166,10 @@ async function* ndjsonSerial(
   query: string,
   options: { maxLineLength: number; emitMode: 'object' | 'raw' }
 ): AsyncGenerator<any> {
-  const { JQLParser } = await import('../core/parser')
+  const { StrimeParser } = await import('../core/parser')
   const { Engine } = await import('../core/engine')
 
-  const parser = new JQLParser(query)
+  const parser = new StrimeParser(query)
   const map = parser.parse()
 
   for await (const line of splitLines(stream, options.maxLineLength)) {

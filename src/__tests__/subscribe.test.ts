@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { subscribe } from '../runtime/subscribe'
 
-describe('JQL Subscription (Push-Mode)', () => {
+describe('Strime Subscription (Push-Mode)', () => {
   it('should emit matches as soon as they are found in an array', async () => {
     const data = [
       { id: 1, name: 'Alice' },

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { query } from '../runtime/index'
 
-describe('JQL Directives and Aliases', () => {
+describe('Strime Directives and Aliases', () => {
   const sample = {
     id: 1,
     firstName: 'Leanne',

@@ -34,11 +34,11 @@ if (parentPort) {
       const { id, line, query, emitMode } = message
 
       // Dynamically import to avoid bundling issues
-      const { JQLParser } = await import('../core/parser.js')
+      const { StrimeParser } = await import('../core/parser.js')
       const { Engine } = await import('../core/engine.js')
 
       // Parse query
-      const parser = new JQLParser(query)
+      const parser = new StrimeParser(query)
       const map = parser.parse()
 
       // Process line

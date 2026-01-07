@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 
 /**
  * Chunked Execution Benchmark
@@ -27,7 +27,7 @@ function runBenchmark() {
 
   // Skip-heavy query (most data skipped)
   const schema = '{ employee { id } }'
-  const selectionMap = new JQLParser(schema).parse()
+  const selectionMap = new StrimeParser(schema).parse()
 
   // Warmup
   console.log('\nWarming up...')

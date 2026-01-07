@@ -13,7 +13,7 @@ interface BenchmarkResult {
 async function runBenchmark(
   name: string,
   filePath: string,
-  jqlQuery: string
+  strimeQuery: string
 ): Promise<BenchmarkResult> {
   const nodeStream = createReadStream(filePath)
   const webStream = Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>
@@ -21,7 +21,7 @@ async function runBenchmark(
   let matchCount = 0
   const start = performance.now()
 
-  await query(webStream, jqlQuery, {
+  await query(webStream, strimeQuery, {
     onMatch: () => {
       matchCount++
     },
@@ -43,7 +43,7 @@ async function runBenchmark(
 
 async function main() {
   console.log('='.repeat(80))
-  console.log('JQL V3.0.0 - Pre-Phase 3 Performance Audit')
+  console.log('Strime V3.0.0 - Pre-Phase 3 Performance Audit')
   console.log('='.repeat(80))
   console.log('')
 

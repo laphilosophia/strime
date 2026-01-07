@@ -1,14 +1,14 @@
 import { ndjsonStream } from '../adapters/ndjson'
 import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 
 /**
- * JQL Battle-Test Suite
+ * Strime Battle-Test Suite
  * Focuses on extreme real-world scenarios.
  */
 
 async function runBattleTest() {
-  console.log('--- ⚔️ JQL Real-World Battle Test ⚔️ ---')
+  console.log('--- ⚔️ Strime Real-World Battle Test ⚔️ ---')
 
   // Scenario 1: Extreme Nesting (1000 levels)
   await testExtremeNesting(1000)
@@ -29,12 +29,12 @@ async function testExtremeNesting(depth: number) {
   for (let i = 0; i < depth; i++) json += '}'
   json += '}'
 
-  const schema = '{ root { node { node } } }' // deep selector? No, JQL is simple
-  // In JQL V2, you'd need the full path if you want the leaf, but let's test if it crashes or skips correctly
+  const schema = '{ root { node { node } } }' // deep selector? No, Strime is simple
+  // In Strime V2, you'd need the full path if you want the leaf, but let's test if it crashes or skips correctly
   const query = '{ root }'
 
   const buffer = new TextEncoder().encode(json)
-  const map = new JQLParser(query).parse()
+  const map = new StrimeParser(query).parse()
   const engine = new Engine(map)
 
   const start = performance.now()

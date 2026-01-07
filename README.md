@@ -1,17 +1,17 @@
-# JQL
+# Strime
 
 A streaming JSON projection engine. Selects and extracts fields from JSON without parsing the entire structure.
 
 [![License: BSL](https://img.shields.io/badge/License-BSL-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-48%2F48-brightgreen.svg)](src/__tests__)
+[![Tests](https://img.shields.io/badge/tests-52%2F52-brightgreen.svg)](src/__tests__)
 
 ---
 
-## Why JQL
+## Why Strime
 
-Most JSON parsers convert the entire input to objects before you can query it. JQL inverts this: it filters during traversal, touching only the bytes you need. The result is constant memory usage regardless of file size—a 10GB file uses the same baseline memory as a 10KB file.
+Most JSON parsers convert the entire input to objects before you can query it. Strime inverts this: it filters during traversal, touching only the bytes you need. The result is constant memory usage regardless of file size—a 10GB file uses the same baseline memory as a 10KB file.
 
-This isn't a marginal improvement. On high-volume workloads, JQL processes JSON at throughputs typically reserved for native implementations.
+This isn't a marginal improvement. On high-volume workloads, Strime processes JSON at throughputs typically reserved for native implementations.
 
 ---
 
@@ -33,7 +33,7 @@ _Validated on 1GB+ files. See [Performance Contract](docs/performance.md) for me
 ## Install
 
 ```bash
-npm install jql
+npm install strime
 ```
 
 ---
@@ -43,7 +43,7 @@ npm install jql
 ### Query
 
 ```typescript
-import { query } from 'jql'
+import { query } from 'strime'
 
 const result = await query(data, '{ id, user { name, email } }')
 ```
@@ -51,7 +51,7 @@ const result = await query(data, '{ id, user { name, email } }')
 ### Stream NDJSON
 
 ```typescript
-import { ndjsonStream } from 'jql'
+import { ndjsonStream } from 'strime'
 
 for await (const row of ndjsonStream(stream, '{ id, name }')) {
   console.log(row)
@@ -72,7 +72,7 @@ for await (const row of ndjsonStream(stream, '{ id, name }', {
 ### Real-Time Subscribe
 
 ```typescript
-import { subscribe } from 'jql'
+import { subscribe } from 'strime'
 
 subscribe(telemetryStream, '{ lat, lon }', {
   onMatch: (data) => console.log(data),
@@ -83,9 +83,9 @@ subscribe(telemetryStream, '{ lat, lon }', {
 ### CLI
 
 ```bash
-jql data.json "{ name, meta { type } }"
-cat massive.json | jql "{ actor { login } }"
-tail -f telemetry.log | jql --ndjson "{ lat, lon }"
+strime data.json "{ name, meta { type } }"
+cat massive.json | strime "{ actor { login } }"
+tail -f telemetry.log | strime --ndjson "{ lat, lon }"
 ```
 
 ---
@@ -122,12 +122,12 @@ tail -f telemetry.log | jql --ndjson "{ lat, lon }"
 For maximum throughput on large single-buffer inputs:
 
 ```typescript
-import { Engine } from 'jql'
-import { JQLParser } from 'jql'
+import { Engine } from 'strime'
+import { StrimeParser } from 'strime'
 import { readFileSync } from 'fs'
 
 const buffer = readFileSync('large-file.json')
-const schema = new JQLParser('{ id, name }').parse()
+const schema = new StrimeParser('{ id, name }').parse()
 const engine = new Engine(schema)
 
 // 6.5x faster on skip-heavy workloads
@@ -138,7 +138,7 @@ const result = engine.executeChunked(buffer, 32768) // Custom 32KB chunks
 ### Low-Level Tokenizer
 
 ```typescript
-import { Tokenizer } from 'jql'
+import { Tokenizer } from 'strime'
 
 const tokenizer = new Tokenizer()
 const buffer = new TextEncoder().encode('{"key": "value"}')
@@ -193,17 +193,17 @@ await query(stream, '{ items { id } }', {
 
 ## Licensing
 
-JQL is released under the **Business Source License (BSL)**.
+Strime is released under the **Business Source License (BSL)**.
 
 - ✅ Source code is fully available and auditable
 - ✅ Free for learning, experimentation, and open-source projects
 - ❌ Commercial and hosted use requires a commercial license
 
-After the Change Date (see LICENSE file), JQL Core will automatically transition to the **Apache 2.0 License**.
+After the Change Date (see LICENSE file), Strime Core will automatically transition to the **Apache 2.0 License**.
 
 ### Why this model?
 
-JQL is a performance-critical infrastructure component. The BSL model allows transparent development while protecting early-stage sustainability, with a commitment to full open-source availability long-term.
+Strime is a performance-critical infrastructure component. The BSL model allows transparent development while protecting early-stage sustainability, with a commitment to full open-source availability long-term.
 
 For commercial licensing, please contact us.
 
@@ -211,7 +211,7 @@ For commercial licensing, please contact us.
 
 ### Trademark Notice
 
-"JQL" and the JQL logo are trademarks of the Licensor. Forks and derivative works must not use the JQL name or branding in a way that suggests official endorsement.
+"Strime" and the Strime logo are trademarks of the Licensor. Forks and derivative works must not use the Strime name or branding in a way that suggests official endorsement.
 
 ---
 

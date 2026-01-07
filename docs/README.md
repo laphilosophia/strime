@@ -1,6 +1,6 @@
-# JQL Documentation
+# Strime Documentation
 
-JQL is a streaming JSON projection engine. It extracts fields from JSON documents without parsing the entire structure, enabling constant-memory processing of arbitrarily large files.
+Strime is a streaming JSON projection engine. It extracts fields from JSON documents without parsing the entire structure, enabling constant-memory processing of arbitrarily large files.
 
 ## Getting Started
 

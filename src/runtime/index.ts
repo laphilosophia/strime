@@ -1,13 +1,13 @@
 import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 import { Tokenizer, TokenType } from '../core/tokenizer'
 
-export type JQLSource = string | Uint8Array | object | ReadableStream<Uint8Array>
+export type StrimeSource = string | Uint8Array | object | ReadableStream<Uint8Array>
 
-export type JQLMode = 'streaming' | 'indexed'
+export type StrimeMode = 'streaming' | 'indexed'
 
-export interface JQLOptions {
-  mode?: JQLMode
+export interface StrimeOptions {
+  mode?: StrimeMode
   debug?: boolean
   signal?: AbortSignal
   budget?: { maxMatches?: number; maxBytes?: number; maxDurationMs?: number }
@@ -16,28 +16,28 @@ export interface JQLOptions {
   emitMode?: 'object' | 'raw'
 }
 
-export interface JQLInstance {
+export interface StrimeInstance {
   read: <T = any>(schema: string) => Promise<T>
 }
 
 /**
- * JQL Instance Manager
- * Manages the lifecycle of a JQL source, including optional indexing.
+ * Strime Instance Manager
+ * Manages the lifecycle of a Strime source, including optional indexing.
  *
  * LifeCycle:
  * - Index is ephemeral and tied to the instance.
  * - Source is immutable once passed to build().
  * - Indexed mode is opt-in to maintain O(1) memory guarantees by default.
  */
-export function build(source: JQLSource, options: JQLOptions = {}): JQLInstance {
+export function build(source: StrimeSource, options: StrimeOptions = {}): StrimeInstance {
   let rootIndex: Map<string, number> | undefined
   let queryCount = 0
   const mode = options.mode || 'streaming'
 
-  const instance: JQLInstance = {
+  const instance: StrimeInstance = {
     read: async <T = any>(schema: string): Promise<T> => {
       queryCount++
-      const parser = new JQLParser(schema)
+      const parser = new StrimeParser(schema)
       const map = parser.parse()
 
       // Collect async sink promises for backpressure
@@ -63,7 +63,7 @@ export function build(source: JQLSource, options: JQLOptions = {}): JQLInstance 
         : undefined
 
       // Auto-wrap selection if it looks like an object-selector but source might be an array
-      // In JQL V2, if root is array, the Engine applies selection to its elements.
+      // In Strime, if root is array, the Engine applies selection to its elements.
       const engine = new Engine(map, {
         debug: options.debug,
         signal: options.signal,
@@ -76,7 +76,7 @@ export function build(source: JQLSource, options: JQLOptions = {}): JQLInstance 
       if (source instanceof ReadableStream) {
         if (mode === 'indexed') {
           console.warn(
-            '[JQL] Indexed mode is not supported for ReadableStream. Falling back to streaming.'
+            '[Strime] Indexed mode is not supported for ReadableStream. Falling back to streaming.'
           )
         }
 
@@ -178,17 +178,17 @@ function buildRootIndex(buffer: Uint8Array): Map<string, number> {
 }
 
 export async function query<T = any>(
-  source: JQLSource,
+  source: StrimeSource,
   schema: string,
-  options?: JQLOptions
+  options?: StrimeOptions
 ): Promise<T> {
   const { read } = build(source, options)
   return read<T>(schema)
 }
 
-function prepareBuffer(source: JQLSource): Uint8Array {
+function prepareBuffer(source: StrimeSource): Uint8Array {
   if (source instanceof Uint8Array) return source
   if (typeof source === 'string') return new TextEncoder().encode(source)
   if (typeof source === 'object') return new TextEncoder().encode(JSON.stringify(source))
-  throw new Error('Invalid JQL source provided')
+  throw new Error('Invalid source provided')
 }

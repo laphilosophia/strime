@@ -1,5 +1,38 @@
 # Changelog
 
+## [3.3.0] - 2026-01-08
+
+### Changed - Rebrand: JQL → Strime
+
+Project renamed from JQL to **Strime** to avoid trademark conflict with Jira Query Language.
+
+#### Breaking Changes
+
+- **Package name**: `jql` → `strime`
+- **CLI command**: `jql` → `strime`
+- **Import path**: `import { query } from 'jql'` → `import { query } from 'strime'`
+
+#### Renamed Exports
+
+| Old Name | New Name |
+|----------|----------|
+| `JQLParser` | `StrimeParser` |
+| `JQLError` | `StrimeError` |
+| `JQLStats` | `StrimeStats` |
+| `JQLSource` | `StrimeSource` |
+| `JQLOptions` | `StrimeOptions` |
+| `JQLInstance` | `StrimeInstance` |
+| `JQLSubscription` | `StrimeSubscription` |
+
+### Added
+
+- Open-source tooling: ESLint, Prettier, Husky, Commitlint
+- GitHub Actions CI workflow
+- Community files: CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md
+- Issue and PR templates
+
+---
+
 ## [3.2.2] - 2026-01-07
 
 ### Added - Phase 5.1: Structural Skip Optimization
@@ -78,9 +111,9 @@ Complete documentation overhaul following new format guidelines:
 - **Object Key Limiting**: `maxObjectKeys` for large object protection (default: 10,000)
 - **DoS Protection**: Guards apply to ALL structures, including unmatched/skipped ones
 - **Typed Errors**: `FanOutLimitError` with error codes for production monitoring
-  - `ERR_JQL_FANOUT_DEPTH` - Depth limit exceeded
-  - `ERR_JQL_FANOUT_ARRAY_SIZE` - Array too wide
-  - `ERR_JQL_FANOUT_OBJECT_KEYS` - Too many object keys
+  - `ERR_Strime_FANOUT_DEPTH` - Depth limit exceeded
+  - `ERR_Strime_FANOUT_ARRAY_SIZE` - Array too wide
+  - `ERR_Strime_FANOUT_OBJECT_KEYS` - Too many object keys
 
 #### V8 Profiling Infrastructure
 
@@ -243,7 +276,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Using Telemetry
 
 ```typescript
-import { query } from 'jql'
+import { query } from 'strime'
 
 const result = await query(data, '{ id, name }', {
   sink: {
@@ -259,7 +292,7 @@ const result = await query(data, '{ id, name }', {
 #### Using Raw Emission
 
 ```typescript
-import { query } from 'jql'
+import { query } from 'strime'
 
 const rawChunks: Uint8Array[] = []
 
@@ -277,7 +310,7 @@ await query(stream, '{ items { id } }', {
 #### Using OutputSink for Streaming
 
 ```typescript
-import { subscribe } from 'jql'
+import { subscribe } from 'strime'
 
 subscribe(stream, '{ name }', {
   onMatch: (match) => {
@@ -304,9 +337,9 @@ subscribe(stream, '{ name }', {
 #### Production-Grade Error Handling
 
 - **Proper Error Types**:
-  - `JQLError`: Base error class with error codes and position tracking
+  - `StrimeError`: Base error class with error codes and position tracking
   - `TokenizationError`: For invalid JSON syntax during tokenization
-  - `ParseError`: For invalid JQL schema syntax
+  - `ParseError`: For invalid Strime schema syntax
   - `StructuralMismatchError`: For JSON structure vs. schema mismatches
 - **Position Tracking**: All errors include byte position where they occurred
 - **Line Number Tracking**: NDJSON errors include line numbers
@@ -373,4 +406,4 @@ subscribe(stream, '{ name }', {
 
 ---
 
-**Full Changelog**: <https://github.com/laphilosophia/jql/compare/v2.2.1...v3.0.0>
+**Full Changelog**: <https://github.com/laphilosophia/strime/compare/v2.2.1...v3.0.0>

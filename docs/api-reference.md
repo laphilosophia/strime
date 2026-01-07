@@ -1,6 +1,6 @@
-# JQL API Reference
+# Strime API Reference
 
-This document provides the complete public API surface of JQL. All signatures are verified against the source code.
+This document provides the complete public API surface of Strime. All signatures are verified against the source code.
 
 ## Runtime
 
@@ -9,7 +9,7 @@ This document provides the complete public API surface of JQL. All signatures ar
 One-shot query execution. Parses the schema, processes the source, and returns the projected result.
 
 ```ts
-import { query } from 'jql'
+import { query } from 'strime'
 
 const result = await query(data, '{ id, name }')
 ```
@@ -17,15 +17,15 @@ const result = await query(data, '{ id, name }')
 **Parameters:**
 
 - `source`: `string | Uint8Array | object | ReadableStream<Uint8Array>`
-- `schema`: `string` — JQL query
-- `options`: `JQLOptions` (optional)
+- `schema`: `string` — Strime query
+- `options`: `StrimeOptions` (optional)
 
-### `build(source, options?): JQLInstance`
+### `build(source, options?): StrimeInstance`
 
 Creates a reusable instance for multiple queries against the same source.
 
 ```ts
-import { build } from 'jql'
+import { build } from 'strime'
 
 const instance = build(buffer, { mode: 'indexed' })
 const result = await instance.read('{ id }')
@@ -34,16 +34,16 @@ const result = await instance.read('{ id }')
 **Parameters:**
 
 - `source`: `string | Uint8Array | object | ReadableStream<Uint8Array>`
-- `options`: `JQLOptions` (optional)
+- `options`: `StrimeOptions` (optional)
 
 **Returns:** `{ read<T>(schema: string): Promise<T> }`
 
-### `subscribe(stream, schema, options): JQLSubscription`
+### `subscribe(stream, schema, options): StrimeSubscription`
 
 Push-mode subscription for real-time processing.
 
 ```ts
-import { subscribe } from 'jql'
+import { subscribe } from 'strime'
 
 const sub = subscribe(stream, '{ id }', {
   onMatch: (data) => console.log(data),
@@ -62,10 +62,10 @@ sub.unsubscribe() // Cancel
 
 ## Options
 
-### `JQLOptions`
+### `StrimeOptions`
 
 ```ts
-interface JQLOptions {
+interface StrimeOptions {
   mode?: 'streaming' | 'indexed'
   debug?: boolean
   signal?: AbortSignal
@@ -100,7 +100,7 @@ interface SubscriptionOptions {
 NDJSON adapter with fault tolerance.
 
 ```ts
-import { ndjsonStream } from 'jql'
+import { ndjsonStream } from 'strime'
 
 for await (const row of ndjsonStream(stream, '{ id }', { skipErrors: true })) {
   // Process row
@@ -120,7 +120,7 @@ interface NDJSONOptions {
 }
 
 interface NDJSONErrorInfo {
-  error: JQLError
+  error: StrimeError
   lineNumber: number
   lineContent: string
 }
@@ -131,7 +131,7 @@ interface NDJSONErrorInfo {
 Parallel NDJSON processing using worker threads.
 
 ```ts
-import { ndjsonParallel } from 'jql'
+import { ndjsonParallel } from 'strime'
 
 for await (const row of ndjsonParallel(stream, '{ id }', { workers: 4 })) {
   // Process row
@@ -145,10 +145,10 @@ Low-level APIs for custom adapters.
 ### `Engine`
 
 ```ts
-import { Engine } from 'jql'
-import { JQLParser } from 'jql'
+import { Engine } from 'strime'
+import { StrimeParser } from 'strime'
 
-const schema = new JQLParser('{ id, name }').parse()
+const schema = new StrimeParser('{ id, name }').parse()
 const engine = new Engine(schema, options)
 
 // Standard execution
@@ -179,7 +179,7 @@ engine.reset()
 ### `Tokenizer`
 
 ```ts
-import { Tokenizer } from 'jql'
+import { Tokenizer } from 'strime'
 
 const tokenizer = new Tokenizer()
 
@@ -194,12 +194,12 @@ for (const token of tokenizer.tokenize(chunk)) {
 }
 ```
 
-### `JQLParser`
+### `StrimeParser`
 
 ```ts
-import { JQLParser } from 'jql'
+import { StrimeParser } from 'strime'
 
-const parser = new JQLParser('{ id, name }')
+const parser = new StrimeParser('{ id, name }')
 const selectionMap = parser.parse()
 ```
 
@@ -210,7 +210,7 @@ const selectionMap = parser.parse()
 Output sink with optional compression.
 
 ```ts
-import { createCompressionSink } from 'jql'
+import { createCompressionSink } from 'strime'
 
 const sink = createCompressionSink({
   onChunk: (chunk) => stream.write(chunk),
@@ -220,17 +220,17 @@ const sink = createCompressionSink({
 
 ## Error Classes
 
-All errors extend `JQLError`:
+All errors extend `StrimeError`:
 
 ```ts
 import {
-  JQLError,
+  StrimeError,
   TokenizationError,
   ParseError,
   StructuralMismatchError,
   AbortError,
   BudgetExhaustedError,
-} from 'jql'
+} from 'strime'
 ```
 
 See [Error Handling](error-handling.md) for details.

@@ -34,7 +34,7 @@ Instead, please email **erdemarslan@ymail.com** with:
 
 ## Scope
 
-This policy applies to the JQL core library (`jql` npm package).
+This policy applies to the Strime core library (`strime` npm package).
 
 Third-party dependencies are outside the scope of this policy, but we will
 coordinate with upstream maintainers when relevant.

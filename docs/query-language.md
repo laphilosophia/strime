@@ -1,16 +1,16 @@
-# JQL Query Language
+# Strime Query Language
 
-JQL uses a structural selection syntax designed for extracting fields from JSON documents. The syntax is intentionally minimal—it describes what to select, not how to transform. This document serves as a reference for the query grammar.
+Strime uses a structural selection syntax designed for extracting fields from JSON documents. The syntax is intentionally minimal—it describes what to select, not how to transform. This document serves as a reference for the query grammar.
 
 ## Selection Syntax
 
-A JQL query describes a projection: which fields to extract from the source document. The basic unit is a field name enclosed in braces.
+A Strime query describes a projection: which fields to extract from the source document. The basic unit is a field name enclosed in braces.
 
 ### Object Selection
 
 Select specific keys from an object:
 
-```jql
+```strime
 { id, name, email }
 ```
 
@@ -20,7 +20,7 @@ Given `{"id": 1, "name": "Alice", "email": "a@b.com", "password": "secret"}`, th
 
 Project into nested structures by nesting the selection:
 
-```jql
+```strime
 {
   id,
   user {
@@ -34,9 +34,9 @@ Each level of nesting corresponds to a level of depth in the source document. Fi
 
 ### Array Handling
 
-JQL automatically applies the selection to each element of an array. You do not need special syntax to iterate:
+Strime automatically applies the selection to each element of an array. You do not need special syntax to iterate:
 
-```jql
+```strime
 { title, tags { name } }
 ```
 
@@ -46,7 +46,7 @@ If `tags` is an array, this extracts `name` from each element. The output preser
 
 Rename fields in the output using the `alias: field` syntax:
 
-```jql
+```strime
 { username: account_login, status: user_status }
 ```
 
@@ -60,7 +60,7 @@ Directives modify values during extraction. They are applied after the value is 
 
 Provides a fallback if the field is missing or null:
 
-```jql
+```strime
 { status @default(value: "unknown") }
 ```
 
@@ -70,7 +70,7 @@ If `status` is absent or `null`, the output contains `"unknown"`.
 
 Extracts a substring. Capped at 10,000 characters:
 
-```jql
+```strime
 { bio @substring(start: 0, len: 100) }
 ```
 
@@ -78,7 +78,7 @@ Extracts a substring. Capped at 10,000 characters:
 
 Formats a number to fixed decimal places. Capped at 20 decimals:
 
-```jql
+```strime
 { price @formatNumber(dec: 2) }
 ```
 
@@ -86,7 +86,7 @@ Formats a number to fixed decimal places. Capped at 20 decimals:
 
 Coerces the value to a specified type:
 
-```jql
+```strime
 { count @coerce(type: "number") }
 ```
 

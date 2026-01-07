@@ -1,6 +1,6 @@
-# JQL Capabilities
+# Strime Capabilities
 
-JQL is a projection engine with deliberately narrow scope. It selects and extracts fields from JSON documents without transforming, aggregating, or restructuring them. This document defines the operational boundaries—what JQL does, what it guarantees, and where its responsibility ends.
+Strime is a projection engine with deliberately narrow scope. It selects and extracts fields from JSON documents without transforming, aggregating, or restructuring them. This document defines the operational boundaries—what Strime does, what it guarantees, and where its responsibility ends.
 
 ## Streaming Mode
 
@@ -64,7 +64,7 @@ function buildRootIndex(buffer: Uint8Array): Map<string, number> {
 }
 ```
 
-The index is ephemeral—tied to the buffer's identity and discarded when the JQL instance is garbage collected.
+The index is ephemeral—tied to the buffer's identity and discarded when the Strime instance is garbage collected.
 
 ## Directive Constraints
 
@@ -90,7 +90,7 @@ These caps ensure that no directive can allocate unbounded memory or consume unb
 
 ## Emission Modes
 
-JQL supports two emission modes, selected at construction time to eliminate runtime branching:
+Strime supports two emission modes, selected at construction time to eliminate runtime branching:
 
 ```ts
 // src/core/engine.ts
@@ -109,7 +109,7 @@ constructor(private initialSelection: SelectionMap, options?: { emitMode?: 'obje
 
 ## Budget Enforcement
 
-JQL supports resource budgets for DoS protection in multi-tenant or untrusted-input scenarios:
+Strime supports resource budgets for DoS protection in multi-tenant or untrusted-input scenarios:
 
 ```ts
 // src/core/engine.ts

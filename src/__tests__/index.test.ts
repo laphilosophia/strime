@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { build, query } from '../runtime/index'
 
-describe('JQL Public API', () => {
+describe('Strime Public API', () => {
   const sample = {
     id: 1,
     name: 'Leanne Graham',

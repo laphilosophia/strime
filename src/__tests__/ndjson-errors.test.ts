@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NDJSONErrorInfo, ndjsonStream } from '../adapters/ndjson'
-import { JQLError } from '../core/errors'
+import { StrimeError } from '../core/errors'
 
 describe('NDJSON Error Handling', () => {
   it('should skip corrupt lines when skipErrors is true', async () => {
@@ -33,7 +33,7 @@ describe('NDJSON Error Handling', () => {
     expect((results[1] as { id: number }).id).toBe(3)
     expect(errors).toHaveLength(1)
     expect(errors[0].lineNumber).toBe(2)
-    expect(errors[0].error).toBeInstanceOf(JQLError)
+    expect(errors[0].error).toBeInstanceOf(StrimeError)
     expect(errors[0].lineContent).toContain('truX')
   })
 
@@ -56,7 +56,7 @@ describe('NDJSON Error Handling', () => {
       for await (const result of ndjsonStream(stream, '{ id }')) {
         results.push(result)
       }
-    }).rejects.toThrow(JQLError)
+    }).rejects.toThrow(StrimeError)
 
     expect(results).toHaveLength(1) // Only first line processed
   })

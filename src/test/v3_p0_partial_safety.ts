@@ -2,7 +2,7 @@ import { ndjsonStream } from '../adapters/ndjson'
 import { AbortError, BudgetExhaustedError } from '../core/errors'
 
 async function verifyPartialSafety() {
-  console.log('--- JQL V3 Partial Output Safety Test ---')
+  console.log('--- Strime V3 Partial Output Safety Test ---')
 
   const items = Array.from({ length: 100 }, (_, i) => ({ id: i, data: 'payload-' + i }))
   const ndjsonBuffer = new TextEncoder().encode(items.map((i) => JSON.stringify(i)).join('\n'))

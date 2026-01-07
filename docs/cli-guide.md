@@ -1,27 +1,27 @@
-# JQL CLI Guide
+# Strime CLI Guide
 
-The JQL command-line interface provides access to the projection engine for shell pipelines and data exploration.
+The Strime command-line interface provides access to the projection engine for shell pipelines and data exploration.
 
 ## Installation
 
 ```bash
-npm install -g jql
+npm install -g strime
 ```
 
 One-time usage without installation:
 
 ```bash
-npx jql data.json "{ name, email }"
+npx strime data.json "{ name, email }"
 ```
 
 ## Usage
 
 ```
-jql [options] [file] <schema>
+strime [options] [file] <schema>
 ```
 
 - `file`: JSON file path (omit to read from stdin)
-- `schema`: JQL query string (must be quoted)
+- `schema`: Strime query string (must be quoted)
 
 ## Options
 
@@ -40,32 +40,32 @@ jql [options] [file] <schema>
 ### Query a File
 
 ```bash
-jql users.json "{ id, name, email }"
+strime users.json "{ id, name, email }"
 ```
 
 ### Read from stdin
 
 ```bash
-cat data.json | jql "{ name }"
-curl https://api.github.com/users/octocat | jql "{ login, public_repos }"
+cat data.json | strime "{ name }"
+curl https://api.github.com/users/octocat | strime "{ login, public_repos }"
 ```
 
 ### Nested Fields
 
 ```bash
-jql order.json "{ orderId, customer { name, address { city } } }"
+strime order.json "{ orderId, customer { name, address { city } } }"
 ```
 
 ### Process NDJSON
 
 ```bash
-jql --ndjson logs.log "{ timestamp, level, message }"
+strime --ndjson logs.log "{ timestamp, level, message }"
 ```
 
 ### Fault-Tolerant NDJSON
 
 ```bash
-jql --ndjson --skip-errors messy.log "{ id, name }"
+strime --ndjson --skip-errors messy.log "{ id, name }"
 ```
 
 Malformed lines are skipped with error output to stderr.
@@ -73,26 +73,26 @@ Malformed lines are skipped with error output to stderr.
 ### Pretty Output
 
 ```bash
-jql --pretty data.json "{ name, email }"
+strime --pretty data.json "{ name, email }"
 ```
 
 ## Pipeline Examples
 
 ```bash
 # Extract and save
-jql users.json "{ id, email }" > emails.json
+strime users.json "{ id, email }" > emails.json
 
 # Process and count
-curl -s https://api.example.com/items | jql "{ id }" | wc -l
+curl -s https://api.example.com/items | strime "{ id }" | wc -l
 
 # Monitor live logs
-tail -f /var/log/app.log | jql --ndjson "{ timestamp, level }"
+tail -f /var/log/app.log | strime --ndjson "{ timestamp, level }"
 
 # Process compressed files
-zcat logs.gz | jql --ndjson "{ message }"
+zcat logs.gz | strime --ndjson "{ message }"
 
 # Chain with grep
-grep "ERROR" app.log | jql --ndjson "{ timestamp, message }"
+grep "ERROR" app.log | strime --ndjson "{ timestamp, message }"
 ```
 
 ## Error Handling
@@ -100,7 +100,7 @@ grep "ERROR" app.log | jql --ndjson "{ timestamp, message }"
 ### Malformed JSON
 
 ```bash
-$ echo '{"broken": json}' | jql "{ broken }"
+$ echo '{"broken": json}' | strime "{ broken }"
 Error: Unexpected token at position 15
 ```
 
@@ -109,7 +109,7 @@ Error: Unexpected token at position 15
 Missing fields are silently omitted:
 
 ```bash
-$ echo '{"name": "Alice"}' | jql "{ name, email }"
+$ echo '{"name": "Alice"}' | strime "{ name, email }"
 {"name":"Alice"}
 ```
 
@@ -118,12 +118,12 @@ $ echo '{"name": "Alice"}' | jql "{ name, email }"
 For NDJSON with very long lines:
 
 ```bash
-jql --ndjson --max-line-length 52428800 huge.log "{ id }"
+strime --ndjson --max-line-length 52428800 huge.log "{ id }"
 ```
 
 ## Comparison with jq
 
-| Aspect | JQL | jq |
+| Aspect | Strime | jq |
 |--------|-----|-----|
 | Performance | Optimized for throughput | General purpose |
 | Memory | O(1) constant | O(N) |
@@ -131,7 +131,7 @@ jql --ndjson --max-line-length 52428800 huge.log "{ id }"
 | Streaming | Native | Limited |
 | Transformations | Projection only | Full manipulation |
 
-Use JQL for high-volume extraction. Use jq for complex transformations.
+Use Strime for high-volume extraction. Use jq for complex transformations.
 
 ---
 

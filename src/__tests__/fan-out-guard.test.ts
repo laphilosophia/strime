@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { Engine } from '../core/engine'
 import { FanOutLimitError } from '../core/fan-out-guard'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 
-const parse = (query: string) => new JQLParser(query).parse()
+const parse = (query: string) => new StrimeParser(query).parse()
 
 describe('Fan-out Guardrails', () => {
   describe('Depth Limits', () => {
@@ -46,7 +46,7 @@ describe('Fan-out Guardrails', () => {
         expect.fail('Should have thrown')
       } catch (e) {
         const error = e as FanOutLimitError
-        expect(error.code).toBe('ERR_JQL_FANOUT_DEPTH')
+        expect(error.code).toBe('ERR_Strime_FANOUT_DEPTH')
         expect(error.limit).toBe(2)
         expect(error.actual).toBeGreaterThan(2)
       }

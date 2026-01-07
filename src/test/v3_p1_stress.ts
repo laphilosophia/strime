@@ -4,7 +4,7 @@ import { OutputSink } from '../core/sink'
 import { build } from '../runtime/index'
 
 async function stressTest() {
-  console.log('--- JQL V3 1GB Stress Test ---')
+  console.log('--- Strime V3 1GB Stress Test ---')
   const filePath = 'data/1GB.json'
 
   let matches = 0

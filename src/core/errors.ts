@@ -1,10 +1,10 @@
 /**
- * Base error class for all JQL-related errors.
+ * Base error class for all Strime-related errors.
  * Provides structured error information including error codes and position tracking.
  */
-export class JQLError extends Error {
+export class StrimeError extends Error {
   /**
-   * Creates a new JQL error.
+   * Creates a new Strime error.
    *
    * @param message - Human-readable error message
    * @param code - Machine-readable error code
@@ -18,10 +18,10 @@ export class JQLError extends Error {
     public line?: number
   ) {
     super(message)
-    this.name = 'JQLError'
+    this.name = 'StrimeError'
 
     // Maintain proper prototype chain for instanceof checks
-    Object.setPrototypeOf(this, JQLError.prototype)
+    Object.setPrototypeOf(this, StrimeError.prototype)
   }
 
   /**
@@ -48,7 +48,7 @@ export class JQLError extends Error {
 /**
  * Error thrown during tokenization when invalid JSON syntax is encountered.
  */
-export class TokenizationError extends JQLError {
+export class TokenizationError extends StrimeError {
   constructor(message: string, position: number) {
     super(message, 'TOKENIZATION_ERROR', position)
     this.name = 'TokenizationError'
@@ -57,9 +57,9 @@ export class TokenizationError extends JQLError {
 }
 
 /**
- * Error thrown during schema parsing when invalid JQL syntax is encountered.
+ * Error thrown during schema parsing when invalid query syntax is encountered.
  */
-export class ParseError extends JQLError {
+export class ParseError extends StrimeError {
   constructor(message: string, position?: number) {
     super(message, 'PARSE_ERROR', position)
     this.name = 'ParseError'
@@ -70,7 +70,7 @@ export class ParseError extends JQLError {
 /**
  * Error thrown when the JSON structure doesn't match the expected schema.
  */
-export class StructuralMismatchError extends JQLError {
+export class StructuralMismatchError extends StrimeError {
   constructor(message: string, position?: number) {
     super(message, 'STRUCTURAL_MISMATCH', position)
     this.name = 'StructuralMismatchError'
@@ -82,7 +82,7 @@ export class StructuralMismatchError extends JQLError {
  * Signals controlled termination initiated by AbortSignal.
  * Does NOT indicate malformed input or engine failure.
  */
-export class AbortError extends JQLError {
+export class AbortError extends StrimeError {
   constructor(message = 'Operation aborted', position?: number) {
     super(message, 'ABORTED', position)
     this.name = 'AbortError'
@@ -94,7 +94,7 @@ export class AbortError extends JQLError {
  * Signals deterministic execution halt due to configured limits.
  * Output remains valid up to the last completed emission.
  */
-export class BudgetExhaustedError extends JQLError {
+export class BudgetExhaustedError extends StrimeError {
   constructor(
     message: string,
     public readonly limitType: 'MATCHES' | 'BYTES' | 'DURATION',

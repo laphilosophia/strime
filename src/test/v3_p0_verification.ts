@@ -2,7 +2,7 @@ import { AbortError, BudgetExhaustedError } from '../core/errors'
 import { query } from '../runtime/index'
 
 async function verifyP0() {
-  console.log('--- JQL V3 P0 Verification ---')
+  console.log('--- Strime V3 P0 Verification ---')
 
   const largeArray = Array.from({ length: 5000 }, (_, i) => ({ id: i, val: 'x'.repeat(1024) }))
   const largeBuffer = new TextEncoder().encode(JSON.stringify(largeArray))

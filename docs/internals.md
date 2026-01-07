@@ -1,10 +1,10 @@
-# JQL Internals
+# Strime Internals
 
-JQL achieves its performance characteristics not through algorithmic novelty but through disciplined engineering choices that align with how modern JavaScript runtimes optimize execution. The techniques described here are individually well-known; the contribution is in their consistent application to a JSON projection engine.
+Strime achieves its performance characteristics not through algorithmic novelty but through disciplined engineering choices that align with how modern JavaScript runtimes optimize execution. The techniques described here are individually well-known; the contribution is in their consistent application to a JSON projection engine.
 
 ## Allocation Discipline
 
-The primary bottleneck in high-throughput JSON processing is not CPU cycles but garbage collection. Traditional parsers allocate objects for every token, key, and value—millions of small objects that trigger frequent GC pauses. JQL's tokenizer is designed to reach a steady state where the hot loop allocates nothing.
+The primary bottleneck in high-throughput JSON processing is not CPU cycles but garbage collection. Traditional parsers allocate objects for every token, key, and value—millions of small objects that trigger frequent GC pauses. Strime's tokenizer is designed to reach a steady state where the hot loop allocates nothing.
 
 The tokenizer maintains a single 64KB `Uint8Array` buffer for accumulating string and number bytes during tokenization. When a token is complete, its value is decoded and the buffer offset resets—the array itself is never reallocated. A single `reusableToken` object is mutated and passed to the callback rather than constructing a new token object per emission.
 
@@ -26,7 +26,7 @@ export class Tokenizer {
 }
 ```
 
-The caller receives the same object reference repeatedly; if persistence is needed, the caller must clone. This pattern has a consequence: the heap profile of JQL during sustained processing appears flat.
+The caller receives the same object reference repeatedly; if persistence is needed, the caller must clone. This pattern has a consequence: the heap profile of Strime during sustained processing appears flat.
 
 ## String Interning
 
@@ -89,7 +89,7 @@ If a non-digit character is encountered (decimal point, exponent marker, negativ
 
 ## Binary Line Splitting
 
-The NDJSON adapter processes streams of newline-delimited JSON objects. A naive implementation would decode the byte stream to a string, split on newlines, re-encode each line to bytes, and pass to the parser. JQL operates entirely on `Uint8Array` chunks:
+The NDJSON adapter processes streams of newline-delimited JSON objects. A naive implementation would decode the byte stream to a string, split on newlines, re-encode each line to bytes, and pass to the parser. Strime operates entirely on `Uint8Array` chunks:
 
 ```ts
 // src/adapters/ndjson.ts
@@ -121,9 +121,9 @@ The consequence is that time complexity is O(N) where N is the byte count, and m
 
 ## What Is Not Optimized
 
-JQL does not use SIMD intrinsics or wide-register tricks (SWAR). Experiments with `Uint32Array` reads for parallel byte scanning showed modest gains in micro-benchmarks but net regressions in real-world JSON due to the overhead of alignment checks and bitmask operations. V8's native loop vectorization on `Uint8Array` iteration—where the access pattern is simple and predictable—proved more effective than manual SIMD emulation.
+Strime does not use SIMD intrinsics or wide-register tricks (SWAR). Experiments with `Uint32Array` reads for parallel byte scanning showed modest gains in micro-benchmarks but net regressions in real-world JSON due to the overhead of alignment checks and bitmask operations. V8's native loop vectorization on `Uint8Array` iteration—where the access pattern is simple and predictable—proved more effective than manual SIMD emulation.
 
-JQL also does not implement structural indexing beyond the optional root-key offset map. Deep indexing strategies that would allow arbitrary path random-access conflict with the streaming model and are excluded by design.
+Strime also does not implement structural indexing beyond the optional root-key offset map. Deep indexing strategies that would allow arbitrary path random-access conflict with the streaming model and are excluded by design.
 
 ---
 

@@ -1,13 +1,13 @@
-# Contributing to JQL
+# Contributing to Strime
 
-Thank you for your interest in contributing to JQL! This guide will help you get started.
+Thank you for your interest in contributing to Strime! This guide will help you get started.
 
 ## Development Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/laphilosophia/jql.git
-cd jql
+git clone https://github.com/laphilosophia/strime.git
+cd strime
 
 # Install dependencies
 npm install

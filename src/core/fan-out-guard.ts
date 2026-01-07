@@ -51,7 +51,7 @@ export class FanOutGuard {
     if (this.currentDepth > this.limits.maxDepth) {
       throw new FanOutLimitError(
         `Fan-out limit exceeded: depth ${this.currentDepth} > ${this.limits.maxDepth}`,
-        'ERR_JQL_FANOUT_DEPTH',
+        'ERR_Strime_FANOUT_DEPTH',
         this.limits.maxDepth,
         this.currentDepth
       )
@@ -75,7 +75,7 @@ export class FanOutGuard {
       if (this.limits.earlyExit) {
         throw new FanOutLimitError(
           `Fan-out limit exceeded: array size ${this.currentArraySize} > ${this.limits.maxArraySize}`,
-          'ERR_JQL_FANOUT_ARRAY_SIZE',
+          'ERR_Strime_FANOUT_ARRAY_SIZE',
           this.limits.maxArraySize,
           this.currentArraySize
         )
@@ -90,7 +90,7 @@ export class FanOutGuard {
       if (this.limits.earlyExit) {
         throw new FanOutLimitError(
           `Fan-out limit exceeded: object keys ${this.currentObjectKeys} > ${this.limits.maxObjectKeys}`,
-          'ERR_JQL_FANOUT_OBJECT_KEYS',
+          'ERR_Strime_FANOUT_OBJECT_KEYS',
           this.limits.maxObjectKeys,
           this.currentObjectKeys
         )

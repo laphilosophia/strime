@@ -1,7 +1,7 @@
 /**
- * Performance metrics for a JQL execution.
+ * Performance metrics for a Strime execution.
  */
-export interface JQLStats {
+export interface StrimeStats {
   matchedCount: number
   processedBytes: number
   durationMs: number
@@ -10,7 +10,7 @@ export interface JQLStats {
 }
 
 /**
- * Interface for JQL output delivery.
+ * Interface for Strime output delivery.
  * Decouples the engine from specific emission formats or targets.
  *
  * Callbacks may return Promises for async operations (e.g., compression, I/O).
@@ -32,7 +32,7 @@ export interface OutputSink {
   /**
    * Called periodically or at completion with performance metrics.
    */
-  onStats?(stats: JQLStats): void
+  onStats?(stats: StrimeStats): void
 
   /**
    * Called when the stream is complete and all data has been emitted.

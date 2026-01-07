@@ -1,5 +1,5 @@
 import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 
 export interface SubscriptionOptions {
   onMatch: (data: any) => void
@@ -10,12 +10,12 @@ export interface SubscriptionOptions {
   budget?: { maxMatches?: number; maxBytes?: number; maxDurationMs?: number }
 }
 
-export interface JQLSubscription {
+export interface StrimeSubscription {
   unsubscribe: () => void
 }
 
 /**
- * JQL Subscription
+ * Strime Subscription
  * Connects a stream directly to a callback-based projection.
  * Ideal for real-time telemetry and high-intensity monitoring.
  */
@@ -23,8 +23,8 @@ export function subscribe(
   stream: ReadableStream<Uint8Array>,
   schema: string,
   options: SubscriptionOptions
-): JQLSubscription {
-  const parser = new JQLParser(schema)
+): StrimeSubscription {
+  const parser = new StrimeParser(schema)
   const map = parser.parse()
 
   const engine = new Engine(map, {

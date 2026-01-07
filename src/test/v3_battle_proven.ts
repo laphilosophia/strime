@@ -15,14 +15,14 @@ async function test1_emitRawComparison() {
   console.log('')
 
   const buffer = readFileSync('data/1GB.json')
-  const jqlQuery = '{ id }'
+  const strimeQuery = '{ id }'
 
   // Test A: emitRaw OFF (default object mode)
   console.log('A. Object Mode (emitRaw: OFF)')
   const timesObject: number[] = []
   for (let i = 0; i < 3; i++) {
     const start = performance.now()
-    await query(buffer, jqlQuery)
+    await query(buffer, strimeQuery)
     const duration = performance.now() - start
     timesObject.push(duration)
     console.log(`  Run ${i + 1}: ${(duration / 1000).toFixed(2)}s`)
@@ -41,7 +41,7 @@ async function test1_emitRawComparison() {
   for (let i = 0; i < 3; i++) {
     rawByteCount = 0
     const start = performance.now()
-    await query(buffer, jqlQuery, {
+    await query(buffer, strimeQuery, {
       emitMode: 'raw',
       sink: {
         onRawMatch: (bytes) => {

@@ -1,10 +1,10 @@
-# JQL Performance Contract
+# Strime Performance Contract
 
-This document establishes the computational guarantees of the JQL engine and presents validation data from controlled benchmarks. The claims made here are empirically grounded and bounded by the constraints described in [Capabilities](capabilities.md).
+This document establishes the computational guarantees of the Strime engine and presents validation data from controlled benchmarks. The claims made here are empirically grounded and bounded by the constraints described in [Capabilities](capabilities.md).
 
 ## Complexity Guarantees
 
-JQL's execution model provides the following complexity bounds:
+Strime's execution model provides the following complexity bounds:
 
 **Time Complexity**
 
@@ -29,7 +29,7 @@ Directives are constrained to prevent resource exhaustion from pathological inpu
 
 ## Benchmark Suite
 
-JQL maintains a comprehensive benchmark suite to validate performance guarantees. These tests are executed against every release candidate.
+Strime maintains a comprehensive benchmark suite to validate performance guarantees. These tests are executed against every release candidate.
 
 ### Extreme Nesting Stress Test
 
@@ -45,7 +45,7 @@ async function testExtremeNesting(depth: number) {
   json += '}'
 
   const buffer = new TextEncoder().encode(json)
-  const map = new JQLParser('{ root }').parse()
+  const map = new StrimeParser('{ root }').parse()
   const engine = new Engine(map)
 
   const start = performance.now()

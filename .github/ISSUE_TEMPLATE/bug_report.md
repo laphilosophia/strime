@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in JQL
+about: Report a bug in Strime
 title: '[BUG] '
 labels: bug
 assignees: ''
@@ -14,7 +14,7 @@ A clear and concise description of what the bug is.
 
 ```typescript
 // Minimal code to reproduce
-import { Engine } from 'jql'
+import { Engine } from 'strime'
 
 const engine = new Engine('{ field }')
 // ...
@@ -30,7 +30,7 @@ What actually happened.
 
 ## Environment
 
-- JQL version:
+- Strime version:
 - Node.js version:
 - OS:
 

@@ -17,7 +17,7 @@ async function runBenchmark() {
   const largeJson = { users: largeArray }
   const largeBuffer = new TextEncoder().encode(JSON.stringify(largeJson))
 
-  console.log('--- JQL V2 Benchmark ---')
+  console.log('--- Strime V2 Benchmark ---')
   console.log(`Payload size: ${(largeBuffer.length / (1024 * 1024)).toFixed(2)} MB`)
 
   // 1. Warmup
@@ -34,11 +34,11 @@ async function runBenchmark() {
   console.timeEnd('Skip-Heavy (90% data skip)')
 
   // 4. Progressive Indexing Benchmark (Amortized)
-  const jql = build(largeBuffer)
-  await jql.read('{ users { id } }') // First run - builds index
+  const strime = build(largeBuffer)
+  await strime.read('{ users { id } }') // First run - builds index
 
   console.time('Indexed Repeat Query')
-  await jql.read('{ users { id } }')
+  await strime.read('{ users { id } }')
   console.timeEnd('Indexed Repeat Query')
 }
 

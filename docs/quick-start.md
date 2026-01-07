@@ -5,7 +5,7 @@ This guide covers installation and core usage patterns. For detailed reference, 
 ## Installation
 
 ```bash
-npm install jql
+npm install strime
 ```
 
 ## Basic Usage
@@ -13,7 +13,7 @@ npm install jql
 ### Object Projection
 
 ```ts
-import { query } from 'jql'
+import { query } from 'strime'
 
 const user = {
   id: 1,
@@ -44,7 +44,7 @@ const result = await query(users, '{ name, email }')
 Process large files without loading into memory:
 
 ```ts
-import { ndjsonStream } from 'jql'
+import { ndjsonStream } from 'strime'
 import { createReadStream } from 'fs'
 
 const stream = createReadStream('logs.ndjson')
@@ -72,7 +72,7 @@ for await (const row of ndjsonStream(stream, '{ id, name }', {
 For real-time processing with callback:
 
 ```ts
-import { subscribe } from 'jql'
+import { subscribe } from 'strime'
 
 const subscription = subscribe(stream, '{ deviceId, temperature }', {
   onMatch: (data) => {
@@ -90,7 +90,7 @@ const subscription = subscribe(stream, '{ deviceId, temperature }', {
 For multiple queries against the same source:
 
 ```ts
-import { build } from 'jql'
+import { build } from 'strime'
 
 const instance = build(buffer, { mode: 'indexed' })
 
@@ -119,13 +119,13 @@ await query(data, '{ username: account_login }')
 
 ```bash
 # Query a file
-jql data.json "{ name, email }"
+strime data.json "{ name, email }"
 
 # Pipe from stdin
-curl https://api.example.com/users | jql "{ login, id }"
+curl https://api.example.com/users | strime "{ login, id }"
 
 # Process NDJSON
-tail -f logs.ndjson | jql --ndjson "{ timestamp, level }"
+tail -f logs.ndjson | strime --ndjson "{ timestamp, level }"
 ```
 
 ## Next Steps

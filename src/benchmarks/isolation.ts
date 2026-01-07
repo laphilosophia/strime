@@ -1,5 +1,5 @@
 import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 
 async function runIsolationBench() {
   const largeArray = Array.from({ length: 10000 }, (_, i) => ({
@@ -11,14 +11,14 @@ async function runIsolationBench() {
   const buffer = new TextEncoder().encode(JSON.stringify(largeArray))
   const schema = '{ id, name, tags }'
 
-  const parser = new JQLParser(schema)
+  const parser = new StrimeParser(schema)
   const map = parser.parse()
 
-  console.log('--- JQL V3 Hook Isolation Benchmark ---')
+  console.log('--- Strime V3 Hook Isolation Benchmark ---')
   console.log(`Payload: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`)
 
   const run = (label: string, skipHooks: boolean) => {
-    ;(globalThis as any).__JQL_SKIP_P0_HOOKS__ = skipHooks
+    ;(globalThis as any).__Strime_SKIP_P0_HOOKS__ = skipHooks
     const engine = new Engine(map)
 
     // Warmup
@@ -57,7 +57,7 @@ async function runIsolationBench() {
     console.log('FAIL: Hook overhead exceeds tolerance. Optimization required.')
   }
 
-  ;(globalThis as any).__JQL_SKIP_P0_HOOKS__ = false // Reset
+  ;(globalThis as any).__Strime_SKIP_P0_HOOKS__ = false // Reset
 }
 
 runIsolationBench().catch(console.error)

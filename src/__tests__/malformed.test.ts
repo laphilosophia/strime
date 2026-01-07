@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { Engine } from '../core/engine'
-import { JQLParser } from '../core/parser'
+import { StrimeParser } from '../core/parser'
 
 describe('Malformed JSON Handling', () => {
   it('should handle garbage between tokens', () => {
     const json = '{"name": !!! "Leanne Graham" !!!, "email": "Sincere@april.biz"}'
     const schema = '{ name, email }'
     const buffer = new TextEncoder().encode(json)
-    const map = new JQLParser(schema).parse()
+    const map = new StrimeParser(schema).parse()
     const engine = new Engine(map)
     const result = engine.execute(buffer)
 
@@ -21,7 +21,7 @@ describe('Malformed JSON Handling', () => {
     const json = '{"name": "Leanne Graham", "email": "Sincere@april.biz"' // Missing }
     const schema = '{ name, email }'
     const buffer = new TextEncoder().encode(json)
-    const map = new JQLParser(schema).parse()
+    const map = new StrimeParser(schema).parse()
     const engine = new Engine(map)
     const result = engine.execute(buffer)
 
@@ -36,7 +36,7 @@ describe('Malformed JSON Handling', () => {
     const json = '{"active": truX, "count": 10}'
     const schema = '{ active, count }'
     const buffer = new TextEncoder().encode(json)
-    const map = new JQLParser(schema).parse()
+    const map = new StrimeParser(schema).parse()
     const engine = new Engine(map)
 
     expect(() => engine.execute(buffer)).toThrow(/Invalid literal/)
@@ -46,7 +46,7 @@ describe('Malformed JSON Handling', () => {
     const json = '{"name": "Unclosed string...'
     const schema = '{ name }'
     const buffer = new TextEncoder().encode(json)
-    const map = new JQLParser(schema).parse()
+    const map = new StrimeParser(schema).parse()
     const engine = new Engine(map)
     const result = engine.execute(buffer)
 

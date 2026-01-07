@@ -2,7 +2,7 @@ import { DirectiveRegistry } from './directives'
 import { BudgetExhaustedError, StructuralMismatchError } from './errors'
 import { FanOutGuard, FanOutLimits } from './fan-out-guard'
 import { SelectionMap } from './parser'
-import { JQLStats, OutputSink } from './sink'
+import { OutputSink, StrimeStats } from './sink'
 import { Token, Tokenizer, TokenType } from './tokenizer'
 
 export class Engine {
@@ -281,7 +281,7 @@ export class Engine {
     }
   }
 
-  public getStats(): JQLStats {
+  public getStats(): StrimeStats {
     const duration = performance.now() - this.startTime
     const skipTime =
       this.totalSkipTime + (this.skipDepth > 0 ? performance.now() - this.skipStartTime : 0)
@@ -522,7 +522,7 @@ export class Engine {
   private onValue(value: any, endPos?: number) {
     if (this.emitMode === 'raw' && !this.isCapturing && this.expectingMatch()) {
       // Single value match (e.g. querying a number or string directly)
-      // This is rare but possible in JQL.
+      // This is rare but possible in Strime.
       // We'll treat it as a match if it's the root.
     }
 

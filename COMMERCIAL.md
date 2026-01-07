@@ -2,10 +2,10 @@
 
 A commercial license is required if you:
 
-- Use JQL as part of a paid product or SaaS
-- Offer JQL as a hosted or managed service
-- Embed JQL into proprietary or closed-source software
-- Redistribute JQL as part of a commercial offering
+- Use Strime as part of a paid product or SaaS
+- Offer Strime as a hosted or managed service
+- Embed Strime into proprietary or closed-source software
+- Redistribute Strime as part of a commercial offering
 
 ### What you get
 

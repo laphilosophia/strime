@@ -4,7 +4,7 @@ import { query } from '../runtime/index'
 /**
  * Large File Validation Tests
  *
- * Tests JQL against real-world large datasets:
+ * Tests Strime against real-world large datasets:
  * - 1GB 5-level nested (employee data)
  * - 1GB 10-level nested (deep hierarchy)
  */
@@ -140,7 +140,7 @@ async function runTest(testCase: TestCase): Promise<{
 
 async function main() {
   console.log('='.repeat(70))
-  console.log('JQL Large File Validation Tests')
+  console.log('Strime Large File Validation Tests')
   console.log('='.repeat(70))
 
   const results = []

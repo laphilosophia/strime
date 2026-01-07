@@ -1,12 +1,12 @@
-import { JQLStats, OutputSink } from '../core/sink'
+import { OutputSink, StrimeStats } from '../core/sink'
 import { query } from '../runtime/index'
 
 async function verifyP1() {
-  console.log('--- JQL V3 P1 Infrastructure Verification ---')
+  console.log('--- Strime V3 P1 Infrastructure Verification ---')
 
-  // 1. Verify Telemetry (JQLStats)
+  // 1. Verify Telemetry (StrimeStats)
   console.log('Testing Telemetry (onStats)...')
-  let finalStats: JQLStats | undefined
+  let finalStats: StrimeStats | undefined
 
   const sink: OutputSink = {
     onMatch: () => {},

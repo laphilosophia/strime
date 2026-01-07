@@ -1,13 +1,13 @@
 import { Engine } from '../core/engine'
-import { JQLError } from '../core/errors'
-import { JQLParser } from '../core/parser'
+import { StrimeError } from '../core/errors'
+import { StrimeParser } from '../core/parser'
 
 /**
  * Information about an error that occurred while processing an NDJSON line.
  */
 export interface NDJSONErrorInfo {
   /** The error that occurred */
-  readonly error: JQLError
+  readonly error: StrimeError
   /** Line number where the error occurred (1-indexed) */
   readonly lineNumber: number
   /** Content of the line that caused the error (decoded as string) */
@@ -55,7 +55,7 @@ const DEFAULT_MAX_LINE_LENGTH = 10 * 1024 * 1024
  * error handling and DoS protection.
  *
  * @param stream - ReadableStream of Uint8Array chunks
- * @param schema - JQL schema string
+ * @param schema - Strime schema string
  * @param options - Processing options
  * @yields Parsed and projected objects
  *
@@ -76,7 +76,7 @@ export async function* ndjsonStream(
   schema: string,
   options: NDJSONOptions = {}
 ): AsyncGenerator<unknown, void, undefined> {
-  const parser = new JQLParser(schema)
+  const parser = new StrimeParser(schema)
   const map = parser.parse()
   const engine = new Engine(map, {
     debug: options.debug,
@@ -114,7 +114,7 @@ export async function* ndjsonStream(
 
           // DoS protection: check for extremely long lines
           if (remaining.length > maxLineLength) {
-            const error = new JQLError(
+            const error = new StrimeError(
               `Line exceeds maximum length of ${maxLineLength} bytes`,
               'LINE_TOO_LONG',
               undefined,
@@ -145,7 +145,7 @@ export async function* ndjsonStream(
         if (line.length > 0) {
           // Check line length before processing
           if (line.length > maxLineLength) {
-            const error = new JQLError(
+            const error = new StrimeError(
               `Line ${lineNumber} exceeds maximum length of ${maxLineLength} bytes`,
               'LINE_TOO_LONG',
               undefined,
@@ -171,17 +171,17 @@ export async function* ndjsonStream(
             const result = engine.execute(line)
             yield result
           } catch (error) {
-            // Convert to JQLError if needed
-            const jqlError =
-              error instanceof JQLError
+            // Convert to StrimeError if needed
+            const strimeError =
+              error instanceof StrimeError
                 ? error
-                : new JQLError(
+                : new StrimeError(
                     error instanceof Error ? error.message : String(error),
                     'UNKNOWN_ERROR'
                   )
 
             // Add line number context
-            jqlError.line = lineNumber
+            strimeError.line = lineNumber
 
             if (options.skipErrors === true) {
               // Decode line content for error reporting
@@ -189,13 +189,13 @@ export async function* ndjsonStream(
               const lineContent = decoder.decode(line)
 
               options.onError?.({
-                error: jqlError,
+                error: strimeError,
                 lineNumber,
                 lineContent,
               })
               // Continue to next line
             } else {
-              throw jqlError
+              throw strimeError
             }
           }
         }
@@ -209,7 +209,7 @@ export async function* ndjsonStream(
       lineNumber++
 
       if (leftover.length > maxLineLength) {
-        const error = new JQLError(
+        const error = new StrimeError(
           `Final line exceeds maximum length of ${maxLineLength} bytes`,
           'LINE_TOO_LONG',
           undefined,
@@ -231,27 +231,27 @@ export async function* ndjsonStream(
           const result = engine.execute(leftover)
           yield result
         } catch (error) {
-          const jqlError =
-            error instanceof JQLError
+          const strimeError =
+            error instanceof StrimeError
               ? error
-              : new JQLError(
+              : new StrimeError(
                   error instanceof Error ? error.message : String(error),
                   'UNKNOWN_ERROR'
                 )
 
-          jqlError.line = lineNumber
+          strimeError.line = lineNumber
 
           if (options.skipErrors === true) {
             const decoder = new TextDecoder('utf-8', { fatal: false })
             const lineContent = decoder.decode(leftover)
 
             options.onError?.({
-              error: jqlError,
+              error: strimeError,
               lineNumber,
               lineContent,
             })
           } else {
-            throw jqlError
+            throw strimeError
           }
         }
       }

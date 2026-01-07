@@ -1,14 +1,14 @@
-# JQL Error Handling
+# Strime Error Handling
 
-JQL distinguishes between recoverable conditions and fatal errors. This distinction matters because JQL is designed for streaming contexts where partial results may still be valuable. The error model is explicit: every error type has a defined behavior, and the caller knows what to expect.
+Strime distinguishes between recoverable conditions and fatal errors. This distinction matters because Strime is designed for streaming contexts where partial results may still be valuable. The error model is explicit: every error type has a defined behavior, and the caller knows what to expect.
 
 ## Error Hierarchy
 
-All JQL errors extend a common base class that provides structured error information:
+All Strime errors extend a common base class that provides structured error information:
 
 ```ts
 // src/core/errors.ts
-export class JQLError extends Error {
+export class StrimeError extends Error {
   constructor(
     message: string,
     public readonly code: string,      // Machine-readable code
@@ -16,7 +16,7 @@ export class JQLError extends Error {
     public line?: number               // Line number (NDJSON)
   ) {
     super(message)
-    this.name = 'JQLError'
+    this.name = 'StrimeError'
   }
 }
 ```
@@ -26,7 +26,7 @@ export class JQLError extends Error {
 | Error Class | Code | Behavior | Recoverable |
 |-------------|------|----------|-------------|
 | `TokenizationError` | `TOKENIZATION_ERROR` | Invalid JSON syntax encountered | No |
-| `ParseError` | `PARSE_ERROR` | Invalid JQL query syntax | No |
+| `ParseError` | `PARSE_ERROR` | Invalid Strime query syntax | No |
 | `StructuralMismatchError` | `STRUCTURAL_MISMATCH` | JSON structure doesn't match expectation | No |
 | `AbortError` | `ABORTED` | Operation cancelled via AbortSignal | Controlled |
 | `BudgetExhaustedError` | `BUDGET_EXHAUSTED_*` | Execution limit reached | Controlled |
@@ -44,7 +44,7 @@ These errors terminate processing immediately:
 throw new TokenizationError("Invalid literal: expected 'true', got 'truX'", position)
 ```
 
-**Parse Errors**: Invalid JQL query syntax.
+**Parse Errors**: Invalid Strime query syntax.
 
 ```ts
 // Thrown when query is: { name @unknownDirective }
@@ -98,7 +98,7 @@ With `skipErrors: true`, malformed lines are reported via `onError` and skipped.
 ### Catching Specific Errors
 
 ```ts
-import { query, TokenizationError, StructuralMismatchError } from 'jql'
+import { query, TokenizationError, StructuralMismatchError } from 'strime'
 
 try {
   const result = await query(data, schema)
@@ -114,7 +114,7 @@ try {
 ### Budget-Limited Execution
 
 ```ts
-import { query, BudgetExhaustedError } from 'jql'
+import { query, BudgetExhaustedError } from 'strime'
 
 try {
   const result = await query(stream, '{ id }', {
