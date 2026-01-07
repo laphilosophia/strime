@@ -44,6 +44,10 @@
   ],
   "author": "Erdem Arslan <erdemarslan@ymail.com>",
   "license": "BSL-1.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/laphilosophia/strime.git"
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.3.0",
     "@commitlint/config-conventional": "^20.3.0",
