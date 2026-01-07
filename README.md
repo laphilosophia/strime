@@ -262,6 +262,42 @@ Multi-Field:        10.01s (880.62 Mbps)
 
 ---
 
-## License
+## Licensing
 
-MIT © 2026 [laphilosophia](https://github.com/laphilosophia)
+JQL is released under the **Business Source License (BSL)**.
+
+This means:
+
+- ✅ The source code is fully available and auditable
+- ✅ Free to use for learning, experimentation, and open-source projects
+- ❌ Commercial and hosted use requires a commercial license
+
+After the Change Date (see LICENSE file), JQL Core will automatically transition to
+the **Apache 2.0 License**, becoming fully open source.
+
+### Why this model?
+
+JQL is a performance-critical infrastructure component built with significant
+engineering effort.
+The BSL model allows us to:
+
+- Keep development transparent
+- Protect early-stage sustainability
+- Commit to full open-source availability long-term
+
+If you are interested in commercial use, please contact us.
+
+---
+
+### Trademark Notice
+
+"JQL" and the JQL logo are trademarks of the Licensor.
+Forks and derivative works must not use the JQL name or branding
+in a way that suggests official endorsement.
+
+---
+
+## Contact
+
+Erdem Arslan
+<erdemarslan@ymail.com>
