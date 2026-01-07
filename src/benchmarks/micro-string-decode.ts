@@ -83,12 +83,12 @@ function runBenchmarks() {
   console.log('='.repeat(80))
   console.log()
 
-  const results: Array<{
+  const results: {
     testCase: string
     concat: number
     apply: number
     decoder: number
-  }> = []
+  }[] = []
 
   for (const testCase of TEST_CASES) {
     console.log(`Testing: ${testCase.name} (${testCase.data.length} bytes)`)
@@ -154,7 +154,7 @@ function runBenchmarks() {
   let decoderWinThreshold = 0
 
   for (const result of results) {
-    const size = parseInt(result.testCase.match(/\d+/)?.[0] || '0')
+    const size = parseInt(/\d+/.exec(result.testCase)?.[0] || '0')
     if (result.apply < result.concat && applyWinThreshold === 0) {
       applyWinThreshold = size
     }

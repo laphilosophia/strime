@@ -1,7 +1,7 @@
 {
   "name": "jql",
-  "version": "3.0.0",
-  "description": "A high-performance, streaming-first JSON Query Language (JQL) engine with $O(1)$ memory guarantees and $O(N)$ traversal cost.",
+  "version": "3.2.2",
+  "description": "Streaming JSON projection engine — extract fields at multi-gigabit speeds with O(1) memory",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -14,23 +14,46 @@
     "dev": "vitest",
     "bench": "tsx src/benchmarks/benchmark.ts",
     "bench:parallel": "tsx src/benchmarks/ndjson-parallel-benchmark.ts",
-    "stress": "tsx src/benchmarks/stress.ts"
+    "stress": "tsx src/benchmarks/stress.ts",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "keywords": [
     "json",
-    "query",
     "streaming",
-    "fsm",
-    "performance",
-    "projection"
+    "projection",
+    "parser",
+    "ndjson",
+    "high-performance",
+    "zero-copy",
+    "data-extraction",
+    "typescript"
   ],
   "author": "Erdem Arslan <erdemarslan@ymail.com>",
-  "license": "MIT",
+  "license": "BSL-1.1",
   "devDependencies": {
+    "@commitlint/cli": "^20.3.0",
+    "@commitlint/config-conventional": "^20.3.0",
+    "@eslint/js": "^9.39.2",
     "@types/node": "^25.0.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.0.0",
+    "typescript-eslint": "^8.52.0",
     "vitest": "^1.0.0"
   }
 }

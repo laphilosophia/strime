@@ -78,7 +78,7 @@ if (parentPort) {
       }
     } catch (error) {
       parentPort!.postMessage({
-        id: (message as any).id,
+        id: message.id,
         error: error instanceof Error ? error.message : String(error),
       })
     }

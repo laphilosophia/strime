@@ -16,7 +16,7 @@ export class Engine {
   // Skip scanner state (persists across chunk boundaries)
   private skipInString = false // String state for multi-chunk strings
   private skipEscaped = false // Escape state for multi-chunk escapes
-  private skipOpenByte: number = 0 // 123 ('{') or 91 ('[')
+  private skipOpenByte = 0 // 123 ('{') or 91 ('[')
   private isArrayStack: boolean[] = []
   private sink?: OutputSink
   private debug = false
@@ -29,11 +29,11 @@ export class Engine {
   private totalSkipTime = 0
   private budget?: { maxMatches?: number; maxBytes?: number; maxDurationMs?: number }
   private emitMode: 'object' | 'raw' = 'object'
-  private matchStartPos: number = 0
+  private matchStartPos = 0
   private rawBuffer: Uint8Array[] = []
   private isCapturing = false
   private firstMatchChunk: Uint8Array | null = null
-  private firstMatchChunkPos: number = 0
+  private firstMatchChunkPos = 0
 
   // Fast-path function pointer (set at construction)
   private emitResult: (item: any, endPos?: number) => void
@@ -64,9 +64,13 @@ export class Engine {
     // Set emit fast-path (ONE TIME - eliminates branch in hot path)
     // Use inline lambdas instead of bind() to avoid closure allocation
     if (this.emitMode === 'raw') {
-      this.emitResult = (item, endPos) => this.emitRaw(item, endPos!)
+      this.emitResult = (item, endPos) => {
+        this.emitRaw(item, endPos!)
+      }
     } else {
-      this.emitResult = (item) => this.emitObject(item)
+      this.emitResult = (item) => {
+        this.emitObject(item)
+      }
     }
 
     // Initialize fan-out guardrails for DoS protection
@@ -230,8 +234,12 @@ export class Engine {
           this.tokenizer.reset()
           this.tokenizer.processChunk(
             remainder,
-            (token) => this.handleToken(token),
-            () => this.enforceBudget()
+            (token) => {
+              this.handleToken(token)
+            },
+            () => {
+              this.enforceBudget()
+            }
           )
         }
       }
@@ -356,8 +364,7 @@ export class Engine {
     const parent = this.selectionStack[this.selectionStack.length - 1]
     if (this.isArrayStack.length === 0) return true // Root
     if (this.isArray()) return true // Array element
-    if (this.currentKey && parent && parent.selection && parent.selection[this.currentKey])
-      return true
+    if (this.currentKey && parent?.selection?.[this.currentKey]) return true
     return false
   }
 
@@ -412,7 +419,7 @@ export class Engine {
       const newObj = isArray ? [] : {}
       parentResult.push(newObj)
       this.resultStack.push(newObj)
-    } else if (this.currentKey && parent && parent.selection && parent.selection[this.currentKey]) {
+    } else if (this.currentKey && parent?.selection?.[this.currentKey]) {
       const config = parent.selection[this.currentKey]
       currentSelection = typeof config === 'boolean' ? { selection: {} } : config
       targetKey = currentSelection.alias || this.currentKey
@@ -532,7 +539,7 @@ export class Engine {
       if (parent.selection || parent === true || parent.directives) {
         parentResult.push(this.applyDirectives(value, parent.directives))
       }
-    } else if (this.currentKey && parent.selection && parent.selection[this.currentKey]) {
+    } else if (this.currentKey && parent.selection?.[this.currentKey]) {
       const parentResult = this.resultStack[this.resultStack.length - 1]
       if (
         typeof parentResult !== 'object' ||

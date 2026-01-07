@@ -29,7 +29,9 @@ async function verifyP0() {
   // 1. Verify AbortSignal (Streaming)
   console.log('Testing AbortSignal (Streaming)...')
   const controller = new AbortController()
-  setTimeout(() => controller.abort(), 10)
+  setTimeout(() => {
+    controller.abort()
+  }, 10)
   try {
     await query(createStream(), '{ id }', { signal: controller.signal })
     console.error('FAIL: AbortSignal did not throw')

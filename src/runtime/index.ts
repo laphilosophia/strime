@@ -104,7 +104,7 @@ export function build(source: JQLSource, options: JQLOptions = {}): JQLInstance 
         return res as T
       }
 
-      const buffer = prepareBuffer(source as Exclude<JQLSource, ReadableStream<Uint8Array>>)
+      const buffer = prepareBuffer(source)
 
       // Progressive indexing: only if mode is 'indexed' and it's a repeat query
       if (mode === 'indexed' && queryCount > 1 && !rootIndex && buffer.length > 1024 * 1024) {

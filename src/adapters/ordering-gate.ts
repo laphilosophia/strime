@@ -14,7 +14,11 @@ export class OrderingGate<T> {
   private maxBufferSize: number
   private emitCallback: (data: T) => void
 
-  constructor(private mode: OrderingMode, workers: number, emitCallback: (data: T) => void) {
+  constructor(
+    private mode: OrderingMode,
+    workers: number,
+    emitCallback: (data: T) => void
+  ) {
     this.maxBufferSize = workers * 2
     this.emitCallback = emitCallback
   }

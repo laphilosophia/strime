@@ -26,7 +26,7 @@ export class Tokenizer {
   private state: 'IDLE' | 'STRING' | 'STRING_ESCAPE' | 'NUMBER' | 'LITERAL' = 'IDLE'
   private buffer = new Uint8Array(65536)
   private bufferOffset = 0
-  private literalTarget: string = ''
+  private literalTarget = ''
   private literalType: TokenType = TokenType.NULL
   private pos = 0
   private startPos = 0
@@ -38,7 +38,10 @@ export class Tokenizer {
   private signal?: AbortSignal
   private aborted = false
 
-  constructor(private source?: Uint8Array, options?: { debug?: boolean; signal?: AbortSignal }) {
+  constructor(
+    private source?: Uint8Array,
+    options?: { debug?: boolean; signal?: AbortSignal }
+  ) {
     this.debug = options?.debug ?? false
     this.signal = options?.signal
     if (this.signal) {

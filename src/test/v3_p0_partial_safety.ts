@@ -30,7 +30,9 @@ async function verifyPartialSafety() {
 
   try {
     const stream = createSlowStream()
-    setTimeout(() => controller.abort(), 20)
+    setTimeout(() => {
+      controller.abort()
+    }, 20)
 
     for await (const result of ndjsonStream(stream, '{ id, data }', {
       signal: controller.signal,

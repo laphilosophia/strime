@@ -151,18 +151,30 @@ async function main() {
       source = new ReadableStream({
         start(controller) {
           const stream = createReadStream(args.filePath!)
-          stream.on('data', (chunk) => controller.enqueue(new Uint8Array(chunk as Buffer)))
-          stream.on('end', () => controller.close())
-          stream.on('error', (err) => controller.error(err))
+          stream.on('data', (chunk) => {
+            controller.enqueue(new Uint8Array(chunk as Buffer))
+          })
+          stream.on('end', () => {
+            controller.close()
+          })
+          stream.on('error', (err) => {
+            controller.error(err)
+          })
         },
       })
     } else {
       // Read from stdin
       source = new ReadableStream({
         start(controller) {
-          process.stdin.on('data', (chunk) => controller.enqueue(new Uint8Array(chunk as Buffer)))
-          process.stdin.on('end', () => controller.close())
-          process.stdin.on('error', (err) => controller.error(err))
+          process.stdin.on('data', (chunk) => {
+            controller.enqueue(new Uint8Array(chunk as Buffer))
+          })
+          process.stdin.on('end', () => {
+            controller.close()
+          })
+          process.stdin.on('error', (err) => {
+            controller.error(err)
+          })
         },
       })
     }
@@ -185,14 +197,14 @@ async function main() {
       }
 
       // Process NDJSON stream
-      for await (const result of ndjsonStream(source, args.schema!, options)) {
+      for await (const result of ndjsonStream(source, args.schema, options)) {
         console.log(JSON.stringify(result, null, args.pretty ? 2 : 0))
       }
     } else {
       // Process regular JSON
       const { build } = await import('../runtime/index')
       const { read } = build(source)
-      const result = await read(args.schema!)
+      const result = await read(args.schema)
       console.log(JSON.stringify(result, null, args.pretty ? 2 : 0))
     }
   } catch (err: any) {

@@ -104,7 +104,7 @@ async function main() {
   console.log('Detailed Results:')
   console.log('-'.repeat(80))
   benchmarks.forEach((b) => {
-    console.log(`${b.name}`)
+    console.log(b.name)
     console.log(`  Duration:    ${(b.duration / 1000).toFixed(2)}s`)
     console.log(`  Throughput:  ${b.throughputMbps.toFixed(2)} Mbps`)
     console.log(`  File Size:   ${(b.fileSize / 1024 / 1024).toFixed(2)} MB`)

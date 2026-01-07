@@ -83,7 +83,7 @@ export class StructuralMismatchError extends JQLError {
  * Does NOT indicate malformed input or engine failure.
  */
 export class AbortError extends JQLError {
-  constructor(message: string = 'Operation aborted', position?: number) {
+  constructor(message = 'Operation aborted', position?: number) {
     super(message, 'ABORTED', position)
     this.name = 'AbortError'
     Object.setPrototypeOf(this, AbortError.prototype)

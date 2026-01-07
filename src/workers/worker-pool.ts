@@ -13,11 +13,11 @@ export interface WorkerPoolOptions {
 export class WorkerPool {
   private workers: Worker[] = []
   private availableWorkers: Worker[] = []
-  private pendingTasks: Array<{
+  private pendingTasks: {
     data: any
     resolve: (value: any) => void
     reject: (error: Error) => void
-  }> = []
+  }[] = []
 
   constructor(private options: WorkerPoolOptions) {
     // Create workers using URL resolution

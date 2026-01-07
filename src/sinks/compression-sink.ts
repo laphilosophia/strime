@@ -70,9 +70,7 @@ export function createCompressionSink(options: CompressionSinkOptions): OutputSi
   let sequenceId = 0
 
   // Output writer
-  const writer = isNodeStream(output)
-    ? createNodeStreamWriter(output as Writable)
-    : (output as WritableStream<Uint8Array>).getWriter()
+  const writer = isNodeStream(output) ? createNodeStreamWriter(output) : output.getWriter()
 
   // Compression function
   async function compressChunk(chunk: Uint8Array): Promise<void> {
@@ -128,7 +126,7 @@ export function createCompressionSink(options: CompressionSinkOptions): OutputSi
 
       // Write to output
       if (isNodeStream(output)) {
-        await writeToNodeStream(writer as NodeStreamWriter, chunk)
+        await writeToNodeStream(writer, chunk)
       } else {
         await (writer as WritableStreamDefaultWriter<Uint8Array>).write(chunk)
       }
@@ -146,7 +144,7 @@ export function createCompressionSink(options: CompressionSinkOptions): OutputSi
 
     // Close output
     if (isNodeStream(output)) {
-      await closeNodeStream(writer as NodeStreamWriter)
+      await closeNodeStream(writer)
     } else {
       await (writer as WritableStreamDefaultWriter<Uint8Array>).close()
     }
