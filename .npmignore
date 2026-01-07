@@ -1,0 +1,23 @@
+# Source files (dist/ contains compiled code)
+src/
+
+# Development files
+.github/
+.husky/
+.prettierrc
+.prettierignore
+.releaserc.json
+eslint.config.js
+commitlint.config.js
+vitest.config.ts
+tsconfig.json
+
+# Data and test files
+data/
+
+# Documentation (README is enough)
+docs/
+
+# Other
+*.log
+*.tgz

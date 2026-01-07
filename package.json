@@ -8,6 +8,9 @@
     "strime": "./dist/cli/index.js"
   },
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "vitest",
     "build": "tsup src/index.ts src/cli/index.ts --format esm --dts --clean --splitting --out-dir dist",
