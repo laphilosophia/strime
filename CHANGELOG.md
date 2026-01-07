@@ -3,6 +3,19 @@
 
 ### Bug Fixes
 
+* trigger npm publish ([cce9e0e](https://github.com/laphilosophia/strime/commit/cce9e0ef69ed15d0aaf35720c4f811234db86b7a))
+* update ci node version ([dc6e1c4](https://github.com/laphilosophia/strime/commit/dc6e1c41807da1d52314e79196f9c89e3693de67))
+
+
+### Features
+
+* rebranding and documentation update ([8b6b7fe](https://github.com/laphilosophia/strime/commit/8b6b7fe708dea73e11325b2e32c1b4c99ded74a8))
+
+# [3.4.0](https://github.com/laphilosophia/strime/compare/v3.3.0...v3.4.0) (2026-01-07)
+
+
+### Bug Fixes
+
 * update ci node version ([dc6e1c4](https://github.com/laphilosophia/strime/commit/dc6e1c41807da1d52314e79196f9c89e3693de67))
 
 
