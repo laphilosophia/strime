@@ -5,7 +5,7 @@ The Strime command-line interface provides access to the projection engine for s
 ## Installation
 
 ```bash
-npm install -g strime
+npm install -g @laphilosophia/strime
 ```
 
 One-time usage without installation:

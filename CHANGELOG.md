@@ -70,7 +70,7 @@ Project renamed from JQL to **Strime** to avoid trademark conflict with Jira Que
 
 - **Package name**: `jql` → `strime`
 - **CLI command**: `jql` → `strime`
-- **Import path**: `import { query } from 'jql'` → `import { query } from 'strime'`
+- **Import path**: `import { query } from 'jql'` → `import { query } from '@laphilosophia/strime'`
 
 #### Renamed Exports
 
@@ -336,7 +336,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Using Telemetry
 
 ```typescript
-import { query } from 'strime'
+import { query } from '@laphilosophia/strime'
 
 const result = await query(data, '{ id, name }', {
   sink: {
@@ -352,7 +352,7 @@ const result = await query(data, '{ id, name }', {
 #### Using Raw Emission
 
 ```typescript
-import { query } from 'strime'
+import { query } from '@laphilosophia/strime'
 
 const rawChunks: Uint8Array[] = []
 
@@ -370,7 +370,7 @@ await query(stream, '{ items { id } }', {
 #### Using OutputSink for Streaming
 
 ```typescript
-import { subscribe } from 'strime'
+import { subscribe } from '@laphilosophia/strime'
 
 subscribe(stream, '{ name }', {
   onMatch: (match) => {

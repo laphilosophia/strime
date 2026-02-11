@@ -14,7 +14,7 @@ A clear and concise description of what the bug is.
 
 ```typescript
 // Minimal code to reproduce
-import { Engine } from 'strime'
+import { Engine } from '@laphilosophia/strime'
 
 const engine = new Engine('{ field }')
 // ...
