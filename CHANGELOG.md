@@ -1,3 +1,10 @@
+## [3.4.4](https://github.com/laphilosophia/strime/compare/v3.4.3...v3.4.4) (2026-02-11)
+
+
+### Bug Fixes
+
+* package names ([fab3519](https://github.com/laphilosophia/strime/commit/fab35192e8f900f5a706b22b373fe6d63d170e5e))
+
 ## [3.4.3](https://github.com/laphilosophia/strime/compare/v3.4.2...v3.4.3) (2026-02-11)
 
 
