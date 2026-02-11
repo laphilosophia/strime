@@ -1,6 +1,6 @@
 {
   "name": "@laphilosophia/strime",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Streaming JSON projection engine — extract fields at multi-gigabit speeds with O(1) memory",
   "type": "module",
   "main": "dist/index.js",

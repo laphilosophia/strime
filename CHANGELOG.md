@@ -1,3 +1,10 @@
+## [3.4.1](https://github.com/laphilosophia/strime/compare/v3.4.0...v3.4.1) (2026-01-07)
+
+
+### Bug Fixes
+
+* add repository field for npm provenance ([1d3354c](https://github.com/laphilosophia/strime/commit/1d3354cd846e2645be56f5b0588aa7f1398d0976))
+
 # [3.4.0](https://github.com/laphilosophia/strime/compare/v3.3.0...v3.4.0) (2026-01-07)
 
 
