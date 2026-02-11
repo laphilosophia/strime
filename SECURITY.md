@@ -12,7 +12,7 @@
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please email **erdemarslan@ymail.com** with:
+Instead, please email **<me@erdem.work>** with:
 
 - Description of the vulnerability
 - Steps to reproduce

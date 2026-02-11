@@ -13,4 +13,4 @@ A commercial license is required if you:
 - Priority support (optional)
 - Long-term stability guarantees
 
-To obtain a commercial license, contact: <erdemarslan@ymail.com>
+To obtain a commercial license, contact: <me@erdem.work>

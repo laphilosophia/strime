@@ -218,4 +218,4 @@ For commercial licensing, please contact us.
 ## Contact
 
 Erdem Arslan
-<erdemarslan@ymail.com>
+<me@erdem.work>
