@@ -1,3 +1,10 @@
+## [3.4.2](https://github.com/laphilosophia/strime/compare/v3.4.1...v3.4.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* update contact email addresses in documentation and metadata ([3eec98c](https://github.com/laphilosophia/strime/commit/3eec98c6f71b742734a7606c3d551051e3885563))
+
 ## [3.4.1](https://github.com/laphilosophia/strime/compare/v3.4.0...v3.4.1) (2026-01-07)
 
 
