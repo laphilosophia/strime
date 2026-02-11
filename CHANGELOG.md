@@ -1,3 +1,10 @@
+## [3.4.3](https://github.com/laphilosophia/strime/compare/v3.4.2...v3.4.3) (2026-02-11)
+
+
+### Bug Fixes
+
+* improve error handling and task management in ndjsonParallel ([3aa0a5a](https://github.com/laphilosophia/strime/commit/3aa0a5acb5d06a384566f92301bf599d6909a500))
+
 ## [3.4.2](https://github.com/laphilosophia/strime/compare/v3.4.1...v3.4.2) (2026-02-11)
 
 
