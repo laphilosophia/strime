@@ -62,14 +62,14 @@ async function main() {
   console.log('')
 
   // Load dataset
-  const buffer = readFileSync('data/1GB.json')
+  const buffer = readFileSync('data/large-file.json')
   const fileSizeMB = buffer.length / 1024 / 1024
   console.log(`Dataset: ${fileSizeMB.toFixed(2)} MB (${buffer.length} bytes)`)
   console.log('')
 
   const queries = [
     { name: 'Simple', query: '{ id }' },
-    { name: 'Complex', query: '{ id, name, email, address { city, zip } }' },
+    { name: 'Complex', query: '{ id, name, email, user { login, avatar_url } }' },
   ]
 
   const results: BenchmarkResult[] = []
