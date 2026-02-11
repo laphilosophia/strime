@@ -97,8 +97,24 @@ export async function* ndjsonParallel(
   let processingComplete = false
   let processingError: Error | null = null
 
+  const pendingTasks = new Set<Promise<void>>()
+
+  const notifyConsumer = () => {
+    if (resultResolve !== null) {
+      resultResolve()
+      resultResolve = null
+    }
+  }
+
+  const setProcessingError = (error: unknown) => {
+    if (processingError === null) {
+      processingError = error instanceof Error ? error : new Error(String(error))
+      notifyConsumer()
+    }
+  }
+
   // Start processing in background
-  ;(async () => {
+  void (async () => {
     try {
       for await (const line of splitLines(stream, maxLineLength)) {
         const id = sequenceId++
@@ -107,7 +123,7 @@ export async function* ndjsonParallel(
         await gate.waitIfFull()
 
         // Dispatch to worker
-        pool
+        const task = pool
           .execute<WorkerResponse>({
             id,
             line,
@@ -122,9 +138,14 @@ export async function* ndjsonParallel(
             gate.push(id, data)
           })
           .catch((error) => {
-            processingError = error
+            setProcessingError(error)
+          })
+          .finally(() => {
+            pendingTasks.delete(task)
           })
       }
+
+      await Promise.all(pendingTasks)
 
       // Wait for all workers to complete
       await gate.drain()
@@ -134,8 +155,10 @@ export async function* ndjsonParallel(
       if (resultResolve) {
         ;(resultResolve as () => void)()
       }
+
+      notifyConsumer()
     } catch (error) {
-      processingError = error instanceof Error ? error : new Error(String(error))
+      setProcessingError(error)
     } finally {
       await pool.terminate()
     }
