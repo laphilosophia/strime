@@ -2,7 +2,7 @@
 
 A streaming JSON projection engine. Selects and extracts fields from JSON without parsing the entire structure.
 
-[![License: BSL](https://img.shields.io/badge/License-BSL-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-52%2F52-brightgreen.svg)](src/__tests__)
 
 ---
@@ -193,25 +193,7 @@ await query(stream, '{ items { id } }', {
 
 ## Licensing
 
-Strime is released under the **Business Source License (BSL)**.
-
-- ✅ Source code is fully available and auditable
-- ✅ Free for learning, experimentation, and open-source projects
-- ❌ Commercial and hosted use requires a commercial license
-
-After the Change Date (see LICENSE file), Strime Core will automatically transition to the **Apache 2.0 License**.
-
-### Why this model?
-
-Strime is a performance-critical infrastructure component. The BSL model allows transparent development while protecting early-stage sustainability, with a commitment to full open-source availability long-term.
-
-For commercial licensing, please contact us.
-
----
-
-### Trademark Notice
-
-"Strime" and the Strime logo are trademarks of the Licensor. Forks and derivative works must not use the Strime name or branding in a way that suggests official endorsement.
+Strime is released under the **Apache 2.0**.
 
 ---
 
