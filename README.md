@@ -2,7 +2,7 @@
 
 A streaming JSON projection engine. Selects and extracts fields from JSON without parsing the entire structure.
 
-[![NPM Download](https://img.shields.io/badge/npm-@laphilosophia/strime-red.svg)](https://www.npmjs.com/package/@laphilosophia/strime)
+[![NPM Download](https://img.shields.io/badge/npm-strime-red.svg)](https://www.npmjs.com/package/@laphilosophia/strime)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-52%2F52-brightgreen.svg)](src/__tests__)
 
@@ -184,6 +184,8 @@ await query(stream, '{ items { id } }', {
 ## Documentation
 
 - [Quick Start](docs/quick-start.md) — Getting started
+- [Deployment Matrix](docs/howto-deployment-matrix.md) — Decision guide for API entry points
+- [Real World Use Cases](docs/howto-use-cases.md) — Practical projection scenarios
 - [Query Language](docs/query-language.md) — Syntax reference
 - [API Reference](docs/api-reference.md) — Complete API
 - [CLI Guide](docs/cli-guide.md) — Command-line usage
