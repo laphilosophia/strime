@@ -1,3 +1,10 @@
+# [3.5.0](https://github.com/laphilosophia/strime/compare/v3.4.4...v3.5.0) (2026-02-15)
+
+
+### Features
+
+* introduce use case and deployment documentation, rename package to `strime`, and remove commercial licensing information ([4caef7b](https://github.com/laphilosophia/strime/commit/4caef7b1c5b5239d14144cd1bd3a69cfe5afe1ce))
+
 ## [3.4.4](https://github.com/laphilosophia/strime/compare/v3.4.3...v3.4.4) (2026-02-11)
 
 
